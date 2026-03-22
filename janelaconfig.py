@@ -40,7 +40,7 @@ def iniciar_janela(version, repo):
     text_area = tk.Text(root, width=50, height=5)
     text_area.grid(row=3, column=0, columnspan=4, padx=10, pady=(0, 8), sticky="we")
 
-    button_gravar = ttk.Button(root, text="Gravar")
+    button_gravar = ttk.Button(root, text="Gravar", command = lambda: metodos.gravar_dados(entrada_cliente.get(), entrada_email.get(), entrada_senha.get(), entrada_caminho.get(), text_area.get("1.0", tk.END)))
     button_gravar.grid(row=4, column=0, columnspan=4, padx=10, pady=(0, 8), sticky="we")
 
     # verificar versão

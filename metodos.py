@@ -102,6 +102,19 @@ def iniciar_compactacao(origem,
     )
     t.start()
 
+def gravar_dados(cliente, email, senha, pasta, emails):
+    dados.config["database"]["cliente"] = cliente
+    dados.config["database"]["email"] = email
+    dados.config["database"]["senhaemail"] = senha
+    dados.config["database"]["caminhopasta"] = pasta
+    emails_separate = emails.split("\n")
+    dados.config["database"]["emailsparaenvio"].clear()
+    for separate in emails_separate:
+        if separate != "":
+            dados.config["database"]["emailsparaenvio"].append(separate)
+    #print(emails)
+    dados.gravar()
+
     #print(f"Pasta '{origem}' compactada em '{destino_zip}'")
 
 # Exemplo de uso:
