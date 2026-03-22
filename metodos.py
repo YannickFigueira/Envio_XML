@@ -1,10 +1,13 @@
 import os
 import threading
 import zipfile
+import dados
 from pathlib import Path
 from platform import system
 from tkinter import messagebox, filedialog
 import logging
+
+# Variáveis
 
 home_dir = os.path.expanduser('~')
 if system == 'Linux':
