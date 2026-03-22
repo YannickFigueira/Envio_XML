@@ -27,7 +27,7 @@ def iniciar_janela(version, repo):
     label_senha = ttk.Label(root, text="senha:")
     label_senha.grid(row=1, column=2, padx=(10, 0), pady=(5, 8), sticky="w")
 
-    entrada_senha = ttk.Entry(root, width=15)
+    entrada_senha = ttk.Entry(root, width=15, show="*")
     entrada_senha.grid(row=1, column=3, padx=10, pady=(5, 8), sticky="w")
 
     label_caminho = ttk.Label(root, text="Caminho do sistema:")

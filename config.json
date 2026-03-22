@@ -4,15 +4,14 @@
         "version": "4.0"
     },
     "database": {
-        "cliente": "novo_cliente",
-        "email": "exemplo@servidor.com.br",
-        "senhaemail": "criptografada",
-        "caminhopasta": "local da pasta",
+        "cliente": "nome_cliente",
+        "email": "exemplo@dominio.com.br",
+        "senhaemail": "secret",
+        "caminhopasta": "pasta_xml",
         "emailsparaenvio": [
             "email1@dominio.com",
             "email2@dominio.com",
-            "email3@dominio.com",
-            "novoemail@dominio.com"
+            "email3@dominio.com"
         ]
     }
 }
