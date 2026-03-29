@@ -6,7 +6,7 @@
     "database": {
         "cliente": "nome_cliente",
         "email": "exemplo@dominio.com.br",
-        "senhaemail": "secret",
+        "senhaemail": "gAAAAABpyV4ikA6t8ZGG9l-A2BbEU18YqttxMGJy06Ay2yQ3tNzeqChvPYZtv_ZzY32FN53E7qSPR1TBklQsodsBw3zXFSSXCA==",
         "caminhopasta": "pasta_xml",
         "emailsparaenvio": [
             "email1@dominio.com",

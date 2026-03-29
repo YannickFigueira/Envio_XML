@@ -1,13 +1,46 @@
 import json
+import crypto
+import base64
 
 # --- Leitura ---
 with open("config.json", "r", encoding="utf-8") as f:
     config = json.load(f)
 
+with open("chave.json", "r", encoding="utf-8") as c:
+    chave = json.load(c)
+
+# --- Gravação ---
+def gravar():
+    with open("config.json", "w", encoding="utf-8") as fw:
+        json.dump(config, fw, indent=4, ensure_ascii=False)
+
+def gerar_chave():
+    chave_leitura = open_key()
+    #print(crypto.chave, " Valor da chave")
+
+    if chave_leitura == "":
+        gravar_chave(crypto.chave)
+
+
+def open_key():
+    chave_crypto = base64.b64decode(chave["crypto"]["key"])
+    #print(chave_crypto, "valor recuperado")
+
+    return chave_crypto
+
+def gravar_chave(chave_gravar):
+
+    #print(chave_gravar, " Valor da chave")
+    chave_b64 = base64.b64encode(chave_gravar).decode("utf-8")
+    chave["crypto"]["key"] = chave_b64
+    with open("chave.json", "w", encoding="utf-8") as cw:
+        json.dump(chave, cw, indent=4, ensure_ascii=False)
+
 # Acessando dados
 cliente = config["database"]["cliente"]
 email = config["database"]["email"]
-senha = config["database"]["senhaemail"]
+senha = crypto.recuperar_senha(open_key(),config["database"]["senhaemail"])
+print(senha)
 caminho = config["database"]["caminhopasta"]
 emails = config["database"]["emailsparaenvio"]
 ## print(cliente)
@@ -26,7 +59,4 @@ emails = config["database"]["emailsparaenvio"]
 # -- config["database"]["cliente"] = "novo_cliente"
 # -- config["database"]["emailsparaenvio"].append("novoemail@dominio.com")
 
-# --- Gravação ---
-def gravar():
-    with open("config.json", "w", encoding="utf-8") as f:
-        json.dump(config, f, indent=4, ensure_ascii=False)
+

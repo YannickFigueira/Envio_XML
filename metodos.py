@@ -105,7 +105,8 @@ def iniciar_compactacao(origem,
 def gravar_dados(cliente, email, senha, pasta, emails):
     dados.config["database"]["cliente"] = cliente
     dados.config["database"]["email"] = email
-    dados.config["database"]["senhaemail"] = senha
+
+    dados.config["database"]["senhaemail"] = dados.crypto.cripto_senha(dados.open_key(),senha)
     dados.config["database"]["caminhopasta"] = pasta
     emails_separate = emails.split("\n")
     dados.config["database"]["emailsparaenvio"].clear()
@@ -115,6 +116,9 @@ def gravar_dados(cliente, email, senha, pasta, emails):
     #print(emails)
     dados.gravar()
 
+dados.gerar_chave()
+
+dados.open_key()
     #print(f"Pasta '{origem}' compactada em '{destino_zip}'")
 
 # Exemplo de uso:
