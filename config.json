@@ -6,8 +6,8 @@
     "database": {
         "cliente": "nome_cliente",
         "email": "exemplo@dominio.com.br",
-        "senhaemail": "gAAAAABpyV4ikA6t8ZGG9l-A2BbEU18YqttxMGJy06Ay2yQ3tNzeqChvPYZtv_ZzY32FN53E7qSPR1TBklQsodsBw3zXFSSXCA==",
-        "caminhopasta": "pasta_xml",
+        "senhaemail": "gAAAAABpyZBiQKUMRcS38apanRUzv4pwVhM-S6IDAMzFS5qNCTA0bWYayW839dugRrksNjRVwKnPzsBMmUdC2qjoVfFurR-ugA==",
+        "caminhopasta": "/home/yannick/Nextcloud/Documents/Development/EnviarXMLPython/XMls",
         "emailsparaenvio": [
             "email1@dominio.com",
             "email2@dominio.com",

@@ -34,19 +34,24 @@ def iniciar_janela(version, repo):
     label_caminho.grid(row=2, column=0, padx=(10, 0), pady=(5, 8), sticky="w")
 
     entrada_caminho = ttk.Entry(root)
-    entrada_caminho.grid(row=2, column=1, columnspan=3, padx=10, pady=(5, 8), sticky="we")
+    entrada_caminho.grid(row=3, column=0, columnspan=4, padx=10, pady=(5, 8), sticky="we")
+
+    button_selecionar_origem = ttk.Button(root, text="Selecionar pasta de XMLs", command=lambda: (entrada_caminho.delete(0, "end"),
+                                                                                  entrada_caminho.insert(0,
+                                                                                                        metodos.selecionar_pasta())))
+    button_selecionar_origem.grid(row=2, column=1, columnspan=3, padx=10, pady=(0, 8), sticky="we")
 
     # Área de texto
     text_area = tk.Text(root, width=50, height=5)
-    text_area.grid(row=3, column=0, columnspan=4, padx=10, pady=(0, 8), sticky="we")
+    text_area.grid(row=4, column=0, columnspan=4, padx=10, pady=(0, 8), sticky="we")
 
     button_gravar = ttk.Button(root, text="Gravar", command = lambda: metodos.gravar_dados(entrada_cliente.get(), entrada_email.get(), entrada_senha.get(), entrada_caminho.get(), text_area.get("1.0", tk.END)))
-    button_gravar.grid(row=4, column=0, columnspan=4, padx=10, pady=(0, 8), sticky="we")
+    button_gravar.grid(row=5, column=0, columnspan=4, padx=10, pady=(0, 8), sticky="we")
 
     # verificar versão
     button_update = ttk.Button(root, text="Verificar atualização",
                                command=lambda: verificarversao.consultar_lancamento(repo, version))
-    button_update.grid(row=5, column=0, columnspan=4, padx=10, pady=(5, 8), sticky="we")
+    button_update.grid(row=6, column=0, columnspan=4, padx=10, pady=(5, 8), sticky="we")
 
     # Inicialização
     def carregar_dados():
