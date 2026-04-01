@@ -6,6 +6,7 @@ from pathlib import Path
 from platform import system
 from tkinter import messagebox, filedialog
 import logging
+from datetime import datetime
 
 # Variáveis
 
@@ -31,21 +32,21 @@ elif system == 'Windows':
         format="%(asctime)s - %(levelname)s - %(message)s"
     )
 
-def compactar(origem, destino_zip, progress_canvas):
+def compactar(origem, destino_zip):
     if not origem == "":
         pasta_origem = Path(origem)
         if pasta_origem.is_dir() or pasta_origem.is_file():
-            pasta_destino = Path(destino_zip)
+            #pasta_destino = Path(destino_zip)
             if not destino_zip == "":
                     pasta_matriz = str(origem).split("/")
-                    destino_zip = f"{destino_zip}/{pasta_matriz[len(pasta_matriz) - 1]}.zip"
+                    destino_zip = f"{destino_zip}/{dados.cliente}_{pasta_matriz[len(pasta_matriz) - 1]}.zip"
                     # Cria o arquivo ZIP no destino
 
                     with zipfile.ZipFile(destino_zip, 'w', zipfile.ZIP_DEFLATED) as zipf:
                         # Percorre todos os arquivos da pasta de origem
                         contador = 0
                         # Conta todos os arquivos dentro da pasta origem
-                        total = sum(len(arquivos) for _, _, arquivos in os.walk(origem))
+                        #total = sum(len(arquivos) for _, _, arquivos in os.walk(origem))
 
                         for raiz, _, arquivos in os.walk(origem):
                             for arquivo in arquivos:
@@ -55,21 +56,33 @@ def compactar(origem, destino_zip, progress_canvas):
                                     caminho_relativo = caminho_completo.relative_to(origem)
                                     zipf.write(caminho_completo, caminho_relativo)
 
-                                    atualizar_barra(contador, total, progress_canvas)
-                                    print(f"{contador} / {total}")
+                                    #atualizar_barra(contador, total, progress_canvas)
+                                    #print(f"{contador} / {total}")
                                     contador += 1
                                 except Exception as e:
                                     logging.error(f"Erro ao compactar {caminho_completo}: {e}")
                             #print(f"{contador} / {len(arquivos)}")
 
-                        atualizar_barra(total, total, progress_canvas)
-                        messagebox.showinfo("Completo", "Finalizado com exito.")
-            else:
-                messagebox.showinfo("Verificar", "Digite algo ou selecione uma pasta.")
-        else:
-            messagebox.showinfo("Verificar", "Arquivo ou pasta inexistente")
-    else:
-        messagebox.showinfo("Verificar", "Digite algo ou selecione uma pasta")
+                        #atualizar_barra(total, total, progress_canvas)
+                        #messagebox.showinfo("Completo", "Finalizado com exito.")
+            #else:
+                #messagebox.showinfo("Verificar", "Digite algo ou selecione uma pasta.")
+        #else:
+            #messagebox.showinfo("Verificar", "Arquivo ou pasta inexistente")
+    #else:
+        #messagebox.showinfo("Verificar", "Digite algo ou selecione uma pasta")
+
+def enviar_email():
+    agora = datetime.now()
+    dia = agora.strftime("%d")
+    dia_registro = float(dados.dia)
+
+    if (float(dia) <= dia_registro) and (dados.executado == False):
+        print("Dia da semana")
+
+    #hora = agora.strftime("%H")
+    #minuto = agora.strftime("%M")
+    #return hora, minuto
 
 def selecionar_pasta():
     pasta = filedialog.askdirectory(title="Selecione uma pasta")
@@ -91,13 +104,11 @@ def atualizar_barra(valor, total, progress_canvas):
 
 # --- Inicia a compactação --- #
 def iniciar_compactacao(origem,
-                        destino_zip,
-                        progress_canvas):
+                        destino_zip):
     t = threading.Thread(
         target=compactar,
         args=(origem,
-              destino_zip,
-              progress_canvas),
+              destino_zip),
         daemon=True
     )
     t.start()
@@ -115,11 +126,11 @@ def gravar_dados(cliente, email, senha, pasta, emails):
             dados.config["database"]["emailsparaenvio"].append(separate)
     #print(emails)
     dados.gravar()
+    messagebox.showinfo("Completo", "Dados gravados com sucesso!")
 
 dados.gerar_chave()
 
 dados.open_key()
-    #print(f"Pasta '{origem}' compactada em '{destino_zip}'")
 
 # Exemplo de uso:
 #origem = r"C:\Users\yannick\Documents\projeto"   # pasta de origem

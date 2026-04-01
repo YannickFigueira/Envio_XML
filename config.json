@@ -4,14 +4,18 @@
         "version": "4.0.0"
     },
     "database": {
-        "cliente": "nome_cliente",
+        "cliente": "jasb",
         "email": "exemplo@dominio.com.br",
-        "senhaemail": "gAAAAABpyZBiQKUMRcS38apanRUzv4pwVhM-S6IDAMzFS5qNCTA0bWYayW839dugRrksNjRVwKnPzsBMmUdC2qjoVfFurR-ugA==",
-        "caminhopasta": "/home/yannick/Nextcloud/Documents/Development/EnviarXMLPython/XMls",
+        "senhaemail": "gAAAAABpzUqUnbTHYuy7mQnSt7uKkT1TJFDUn5-Evr2iLpA-wM6PCFZgU7RXTgD6xnBwwm_be7u7t8tIf03lsD0jhKTAvVhvlg==",
+        "caminhopasta": "/home/yannick/Nextcloud/Documents/Development/EnviarXMLPython/xml",
         "emailsparaenvio": [
             "email1@dominio.com",
             "email2@dominio.com",
             "email3@dominio.com"
         ]
+    },
+    "agendamento": {
+        "dia": "7",
+        "executado": "False"
     }
 }

@@ -40,13 +40,13 @@ def gravar_chave(chave_gravar):
 cliente = config["database"]["cliente"]
 email = config["database"]["email"]
 senha = crypto.recuperar_senha(open_key(),config["database"]["senhaemail"])
-print(senha)
+#print(senha)
 caminho = config["database"]["caminhopasta"]
 emails = config["database"]["emailsparaenvio"]
-## print(cliente)
-## print(email)
-## print(senha)
-## print(caminho)
+
+dia = config["agendamento"]["dia"]
+executado_str = config["agendamento"]["executado"]  # exemplo: "False"
+executado = executado_str.strip().lower() == "true"
 
 ## for email_envio in emails:
 ##     print("Enviando de:", email, "Enviando para:", email_envio)

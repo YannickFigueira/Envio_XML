@@ -67,5 +67,8 @@ def iniciar_janela(version, repo):
         text_area.insert("1.0", "\n".join(metodos.dados.emails))
 
     carregar_dados()
+    metodos.iniciar_compactacao(metodos.dados.caminho, "/home/yannick/teste")
+
+    metodos.enviar_email()
 
     root.mainloop()
