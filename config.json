@@ -6,8 +6,8 @@
     "database": {
         "cliente": "jasb",
         "email": "exemplo@dominio.com.br",
-        "senhaemail": "gAAAAABpzUqUnbTHYuy7mQnSt7uKkT1TJFDUn5-Evr2iLpA-wM6PCFZgU7RXTgD6xnBwwm_be7u7t8tIf03lsD0jhKTAvVhvlg==",
-        "caminhopasta": "/home/yannick/Nextcloud/Documents/Development/EnviarXMLPython/xml",
+        "senhaemail": "gAAAAABp43rnW05LLRuOptPMn9SKUtEuhyvz-RgPnbYfJZeFqIr88KzaZyDnLR7pYWG1WokRrzYp4L0hbT2_Dz5h3WuhEjr4ww==",
+        "caminhopasta": "/home/yannick/Documentos/Development/EnviarXMLPython/leitura",
         "emailsparaenvio": [
             "email1@dominio.com",
             "email2@dominio.com",
