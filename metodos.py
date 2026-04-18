@@ -8,9 +8,11 @@ from tkinter import messagebox, filedialog
 import logging
 from datetime import datetime
 
-# Variáveis
+# Inicializar dados
 
+# Variáveis
 home_dir = os.path.expanduser('~')
+system = system()
 if system == 'Linux':
 
     if not os.path.exists(f"{home_dir}/log"):
@@ -36,35 +38,36 @@ def compactar(origem, destino_zip):
     if not origem == "":
         pasta_origem = Path(origem)
         if pasta_origem.is_dir() or pasta_origem.is_file():
-            #pasta_destino = Path(destino_zip)
             if not destino_zip == "":
-                    pasta_matriz = str(origem).split("/")
-                    destino_zip = f"{destino_zip}/{dados.cliente}_{pasta_matriz[len(pasta_matriz) - 1]}.zip"
-                    # Cria o arquivo ZIP no destino
+                if system == 'Linux':
+                    destino_zip = f"{destino_zip}/{dados.atualizar_dados('cliente')}.zip"
+                elif system == 'Windows':
+                    destino_zip = f"{destino_zip}\\{dados.atualizar_dados('cliente')}.zip"
+                # Cria o arquivo ZIP no destino
 
-                    with zipfile.ZipFile(destino_zip, 'w', zipfile.ZIP_DEFLATED) as zipf:
-                        # Percorre todos os arquivos da pasta de origem
-                        contador = 0
-                        # Conta todos os arquivos dentro da pasta origem
-                        #total = sum(len(arquivos) for _, _, arquivos in os.walk(origem))
+                with zipfile.ZipFile(destino_zip, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                    # Percorre todos os arquivos da pasta de origem
+                    contador = 0
+                    # Conta todos os arquivos dentro da pasta origem
+                    #total = sum(len(arquivos) for _, _, arquivos in os.walk(origem))
 
-                        for raiz, _, arquivos in os.walk(origem):
-                            for arquivo in arquivos:
+                    for raiz, _, arquivos in os.walk(origem):
+                        for arquivo in arquivos:
 
-                                try:
-                                    caminho_completo = Path(raiz) / arquivo
-                                    caminho_relativo = caminho_completo.relative_to(origem)
-                                    zipf.write(caminho_completo, caminho_relativo)
+                            try:
+                                caminho_completo = Path(raiz) / arquivo
+                                caminho_relativo = caminho_completo.relative_to(origem)
+                                zipf.write(caminho_completo, caminho_relativo)
 
-                                    #atualizar_barra(contador, total, progress_canvas)
-                                    #print(f"{contador} / {total}")
-                                    contador += 1
-                                except Exception as e:
-                                    logging.error(f"Erro ao compactar {caminho_completo}: {e}")
-                            #print(f"{contador} / {len(arquivos)}")
+                                #atualizar_barra(contador, total, progress_canvas)
+                                #print(f"{contador} / {total}")
+                                contador += 1
+                            except Exception as e:
+                                logging.error(f"Erro ao compactar {caminho_completo}: {e}")
+                        #print(f"{contador} / {len(arquivos)}")
 
-                        #atualizar_barra(total, total, progress_canvas)
-                        #messagebox.showinfo("Completo", "Finalizado com exito.")
+                    #atualizar_barra(total, total, progress_canvas)
+                    #messagebox.showinfo("Completo", "Finalizado com exito.")
             #else:
                 #messagebox.showinfo("Verificar", "Digite algo ou selecione uma pasta.")
         #else:
@@ -127,6 +130,10 @@ def gravar_dados(cliente, email, senha, pasta, emails):
     #print(emails)
     dados.gravar()
     messagebox.showinfo("Completo", "Dados gravados com sucesso!")
+
+    print(dados.cliente)
+    cliente = dados.atualizar_dados("cliente")
+    print(cliente)
 
 dados.gerar_chave()
 

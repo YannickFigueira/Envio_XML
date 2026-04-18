@@ -295,7 +295,6 @@ def ler_dados_notas(caminho):
             qtd_produto += separar[2] + ","
             valor_produto += separar[3] + ","
             valor_total_produto += separar[4] + ","
-    print("Finalizado")
 
     relatorio.htm_nfce(estabelecimento, data_nota_soma.split(","), nf_numero.split(","), p_nome.split(","), qtd_produto.split(","),
                        valor_produto.split(","), valor_total_produto.split(","), soma_valores)

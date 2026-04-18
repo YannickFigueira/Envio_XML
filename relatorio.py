@@ -89,8 +89,6 @@ def htm_danfe(estabelecimento, nota, serie, data_nota_danfe, cliente, valor_prod
     with open(f"{destino_dir}/danfe.htm", "w", encoding="utf-8") as arquivo:
         arquivo.write(conteudo_htm)
 
-    print("Arquivo danfe.htm criado com sucesso!")
-
 # Relatório NFCE
 def htm_nfce(estabelecimento, data_nota, nota_numero,produto_nome, qtd, valor_unidade, total_notas, total):
 
@@ -147,5 +145,3 @@ def htm_nfce(estabelecimento, data_nota, nota_numero,produto_nome, qtd, valor_un
     # grava o conteúdo no arquivo
     with open(f"{destino_dir}/nfce.htm", "w", encoding="utf-8") as arquivo:
         arquivo.write(conteudo_htm)
-
-    print("Arquivo nfce.htm criado com sucesso!")
