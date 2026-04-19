@@ -251,7 +251,8 @@ def ler_dados_notas(caminho):
             valor_desc_relatorio += separar[6] + ","
             valor_nota_relatorio += separar[7] + ","
 
-    relatorio.htm_danfe(estabelecimento, nota_danfe_relatorio.split(","), serie_relatorio.split(","), data_relatorio.split(","), cliente_relatorio.split(","),
+    if index_danfe != 0:
+        relatorio.htm_danfe(estabelecimento, nota_danfe_relatorio.split(","), serie_relatorio.split(","), data_relatorio.split(","), cliente_relatorio.split(","),
                         valor_produto_relatorio.split(","),valor_frete_relatorio.split(","), valor_desc_relatorio.split(","),
                         valor_nota_relatorio.split(","), soma_valores_danfe, soma_desc_danfe, soma_total_danfe)
 
@@ -296,7 +297,8 @@ def ler_dados_notas(caminho):
             valor_produto += separar[3] + ","
             valor_total_produto += separar[4] + ","
 
-    relatorio.htm_nfce(estabelecimento, data_nota_soma.split(","), nf_numero.split(","), p_nome.split(","), qtd_produto.split(","),
+    if index_nfce != 0:
+        relatorio.htm_nfce(estabelecimento, data_nota_soma.split(","), nf_numero.split(","), p_nome.split(","), qtd_produto.split(","),
                        valor_produto.split(","), valor_total_produto.split(","), soma_valores)
 
 

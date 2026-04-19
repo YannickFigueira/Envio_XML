@@ -94,17 +94,6 @@ def selecionar_pasta():
     else:
         return None
 
-### Atualiza a barra de progresso ###
-def atualizar_barra(valor, total, progress_canvas):
-    progress_canvas.delete("all")
-    largura = int((valor / total) * progress_canvas.winfo_width())
-    # desenha a barra preenchida
-    progress_canvas.create_rectangle(0, 0, largura, 25, fill="green")
-    # escreve a porcentagem dentro da barra
-    porcentagem = (valor / total) * 100
-    x = progress_canvas.winfo_width() // 2
-    progress_canvas.create_text(x, 12, text=f"{porcentagem:.3f}%", fill="black", font=("Arial", 10, "bold"), anchor="center")
-
 # --- Inicia a compactação --- #
 def iniciar_compactacao(origem,
                         destino_zip):
@@ -127,13 +116,9 @@ def gravar_dados(cliente, email, senha, pasta, emails):
     for separate in emails_separate:
         if separate != "":
             dados.config["database"]["emailsparaenvio"].append(separate)
-    #print(emails)
+
     dados.gravar()
     messagebox.showinfo("Completo", "Dados gravados com sucesso!")
-
-    print(dados.cliente)
-    cliente = dados.atualizar_dados("cliente")
-    print(cliente)
 
 dados.gerar_chave()
 

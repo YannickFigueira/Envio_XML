@@ -83,7 +83,6 @@ def iniciar_janela(version, repo):
     carregar_dados()
     #xmlreadnota.ler_dados_notas(metodos.dados.caminho)
     #metodos.iniciar_compactacao(metodos.dados.caminho, destino_dir)
-
-    metodos.enviar_email()
+    #metodos.enviar_email()
 
     root.mainloop()
