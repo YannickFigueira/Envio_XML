@@ -2,7 +2,7 @@ import xml.etree.ElementTree as ET
 import glob
 import relatorio
 
-def ler_dados_notas(caminho):
+def ler_dados_notas(caminho, dados):
 
     #caminho = "/home/yannick/Downloads/23847090000156_202602_0_documentos/*.xml"
     #caminho = "/home/yannick/Documentos/Development/EnviarXMLPython/leitura"
@@ -243,6 +243,7 @@ def ler_dados_notas(caminho):
             separar = sortear_item.split("->")
 
             nota_danfe_relatorio += separar[0] + ","
+            #print(separar[0])
             serie_relatorio += separar[1] + ","
             data_relatorio += separar[2] + ","
             cliente_relatorio += separar[3] + ","
@@ -252,6 +253,11 @@ def ler_dados_notas(caminho):
             valor_nota_relatorio += separar[7] + ","
 
     if index_danfe != 0:
+        if index_nfce != 0:
+            nota = nota_danfe_relatorio.split(",")
+            print(nota[len(nota) - 2])
+            dados.config["notas"]["ultima_nota_danfe"] = nota[len(nota) - 2].replace(" ", "")
+            dados.gravar()
         relatorio.htm_danfe(estabelecimento, nota_danfe_relatorio.split(","), serie_relatorio.split(","), data_relatorio.split(","), cliente_relatorio.split(","),
                         valor_produto_relatorio.split(","),valor_frete_relatorio.split(","), valor_desc_relatorio.split(","),
                         valor_nota_relatorio.split(","), soma_valores_danfe, soma_desc_danfe, soma_total_danfe)
@@ -275,6 +281,7 @@ def ler_dados_notas(caminho):
 
     sortears = sortear.split(";")
     sortears = sorted(sortears, key=lambda x: str(x).lower())
+    cupom = ""
     for sortear_item in sortears:
         if sortear_item != "":
             separar = sortear_item.split("->")
@@ -292,12 +299,21 @@ def ler_dados_notas(caminho):
                 case _:
                     nf_numero += separar[0] + ","
 
+            #print(separar[0])
+            if cupom != separar[0]:
+                cupom = separar[0]
+                #print(cupom)
             p_nome += separar[1] + ","
             qtd_produto += separar[2] + ","
             valor_produto += separar[3] + ","
             valor_total_produto += separar[4] + ","
 
     if index_nfce != 0:
+        nota = nf_numero.split(",")
+        print(nota[len(nota)-2])
+        dados.config["notas"]["ultima_nota_nfce"] = nota[len(nota) - 2].replace(" ", "")
+        dados.gravar()
+
         relatorio.htm_nfce(estabelecimento, data_nota_soma.split(","), nf_numero.split(","), p_nome.split(","), qtd_produto.split(","),
                        valor_produto.split(","), valor_total_produto.split(","), soma_valores)
 

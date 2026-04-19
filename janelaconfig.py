@@ -1,7 +1,5 @@
 import tkinter as tk
 from tkinter import ttk
-
-import dados
 import metodos, verificarversao, xmlreadnota
 import platform, os
 
@@ -57,8 +55,8 @@ def iniciar_janela(version, repo):
     text_area.grid(row=4, column=0, columnspan=4, padx=10, pady=(0, 8), sticky="we")
 
     button_gravar = ttk.Button(root, text="Gravar", command = lambda: (metodos.gravar_dados(entrada_cliente.get(), entrada_email.get(), entrada_senha.get(), entrada_caminho.get(), text_area.get("1.0", tk.END)),
-    xmlreadnota.ler_dados_notas(dados.atualizar_dados('caminho')),
-    metodos.iniciar_compactacao(dados.atualizar_dados('caminho'), destino_dir)
+    xmlreadnota.ler_dados_notas(metodos.dados.atualizar_dados('caminho'), metodos.dados),
+    metodos.iniciar_compactacao(metodos.dados.atualizar_dados('caminho'), destino_dir)
     ))
     button_gravar.grid(row=5, column=0, columnspan=4, padx=10, pady=(0, 8), sticky="we")
 
