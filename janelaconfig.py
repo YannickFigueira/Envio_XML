@@ -55,8 +55,7 @@ def iniciar_janela(version, repo):
     text_area.grid(row=4, column=0, columnspan=4, padx=10, pady=(0, 8), sticky="we")
 
     button_gravar = ttk.Button(root, text="Gravar", command = lambda: (metodos.gravar_dados(entrada_cliente.get(), entrada_email.get(), entrada_senha.get(), entrada_caminho.get(), text_area.get("1.0", tk.END)),
-    xmlreadnota.ler_dados_notas(metodos.dados.atualizar_dados('caminho'), metodos.dados),
-    metodos.iniciar_compactacao(metodos.dados.atualizar_dados('caminho'), destino_dir)
+                                                                       preparar_xmls()
     ))
     button_gravar.grid(row=5, column=0, columnspan=4, padx=10, pady=(0, 8), sticky="we")
 
@@ -79,8 +78,11 @@ def iniciar_janela(version, repo):
         text_area.insert("1.0", "\n".join(metodos.dados.emails))
 
     carregar_dados()
-    #xmlreadnota.ler_dados_notas(metodos.dados.caminho)
-    #metodos.iniciar_compactacao(metodos.dados.caminho, destino_dir)
-    #metodos.enviar_email()
+    def preparar_xmls():
+        caminho = metodos.copiar_xmls(metodos.dados.atualizar_dados('caminho'), destino_dir,
+                                                        metodos.dados.atualizar_dados('cliente'), 10, 2022)
+        xmlreadnota.ler_dados_notas(caminho, metodos.dados)
+        metodos.iniciar_compactacao(caminho, destino_dir)
+        #metodos.enviar_email()
 
     root.mainloop()

@@ -3,6 +3,7 @@ import glob
 import relatorio
 
 def ler_dados_notas(caminho, dados):
+    print(caminho)
 
     #caminho = "/home/yannick/Downloads/23847090000156_202602_0_documentos/*.xml"
     #caminho = "/home/yannick/Documentos/Development/EnviarXMLPython/leitura"
@@ -43,7 +44,7 @@ def ler_dados_notas(caminho, dados):
 
     conta_nota = 0
     valor_qtd = ""
-    for arquivo in glob.glob(caminho + "/*.xml"):
+    for arquivo in glob.glob(caminho + "/notas/*.xml"):
         tree = ET.parse(arquivo)
         root = tree.getroot()
 
@@ -211,6 +212,8 @@ def ler_dados_notas(caminho, dados):
                     except (TypeError, ValueError):
                         pass
 
+    caminho = caminho + "/relatorio"
+
     #separador da DANFE
     nota_danfe_array = nota_danfe.split(",")
     serie_array = serie.split(",")
@@ -275,9 +278,10 @@ def ler_dados_notas(caminho, dados):
         dados.config["notas"]["ultima_nota_danfe"] = nota[len(nota) - 2].replace(" ", "")
         dados.gravar()
 
+
         relatorio.htm_danfe(estabelecimento, nota_danfe_relatorio.split(","), serie_relatorio.split(","), data_relatorio.split(","), cliente_relatorio.split(","),
                         valor_produto_relatorio.split(","),valor_frete_relatorio.split(","), valor_desc_relatorio.split(","),
-                        valor_nota_relatorio.split(","), soma_valores_danfe, soma_desc_danfe, soma_total_danfe, faltantes)
+                        valor_nota_relatorio.split(","), soma_valores_danfe, soma_desc_danfe, soma_total_danfe, faltantes, caminho)
 
     # separador do NFCE
     valor = produto.split(",")
@@ -351,7 +355,7 @@ def ler_dados_notas(caminho, dados):
         dados.gravar()
 
         relatorio.htm_nfce(estabelecimento, data_nota_soma.split(","), nf_numero.split(","), p_nome.split(","), qtd_produto.split(","),
-                       valor_produto.split(","), valor_total_produto.split(","), soma_valores, faltantes)
+                       valor_produto.split(","), valor_total_produto.split(","), soma_valores, faltantes, caminho)
 
 
 #ler_dados_notas("texto")

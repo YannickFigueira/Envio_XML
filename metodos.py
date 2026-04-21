@@ -1,4 +1,4 @@
-import os
+import os, shutil
 import threading
 import zipfile
 import dados
@@ -33,6 +33,38 @@ elif system == 'Windows':
         level=logging.ERROR,  # nível de log
         format="%(asctime)s - %(levelname)s - %(message)s"
     )
+def copiar_xmls(origem, destino_dir, cliente, mes_desejado, ano_desejado):
+    destino_compactar = ""
+    if system == "Windows":
+        destino_compactar = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{cliente}"
+        destino_dir = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{cliente}\\notas"
+        if not os.path.exists(destino_dir):
+            os.makedirs(destino_dir)
+            os.makedirs(f"{destino_compactar}\\relatorio")
+    elif system == "Linux":
+        destino_compactar = f"{destino_dir}/{ano_desejado}_{mes_desejado}_{cliente}"
+        destino_dir = f"{destino_dir}/{ano_desejado}_{mes_desejado}_{cliente}/notas"
+        if not os.path.exists(destino_dir):
+            os.makedirs(destino_dir)
+            os.makedirs(f"{destino_compactar}/relatorio")
+    # Defina o mês e ano que deseja copiar (exemplo: março de 2024)
+    #mes_desejado = 4
+    #ano_desejado = 2026
+
+    for arquivo in os.listdir(origem):
+        caminho_arquivo = os.path.join(origem, arquivo)
+
+        if os.path.isfile(caminho_arquivo):
+            # Obter data de criação
+            timestamp_modificacao = os.path.getmtime(caminho_arquivo)
+            data_modificacao = datetime.fromtimestamp(timestamp_modificacao)
+
+            # Verificar se o arquivo pertence ao mês/ano desejado
+            if data_modificacao.month == mes_desejado and data_modificacao.year == ano_desejado:
+                shutil.copy2(caminho_arquivo, destino_dir)
+                #print(f"Arquivo {arquivo} copiado (criado em {data_modificacao})")
+    return destino_compactar
+
 
 def compactar(origem, destino_zip):
     if not origem == "":

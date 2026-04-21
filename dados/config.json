@@ -6,7 +6,7 @@
     "database": {
         "cliente": "cliente",
         "email": "exemplo@dominio.com.br",
-        "senhaemail": "gAAAAABp56QHyo_-okECkZv-khemNiGgRdGHTwb82bCTwzsJjcHdaKFscq7y7uV8-Z1vWDeUjASRCFYwwLCWi7I3Zhq-tQE4Wg==",
+        "senhaemail": "gAAAAABp57wnv3pC4iGYOLKPdaHdjgZNuNgzPpGgFU1Da36D-GNvLL779aQ9xOj4kH9M0o9nlztOz_UzlId9SkvHuCYW6Rus-g==",
         "caminhopasta": "/home/yannick/Documentos/Development/EnviarXMLPython/leitura",
         "emailsparaenvio": [
             "email1@dominio.com",

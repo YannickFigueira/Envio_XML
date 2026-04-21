@@ -1,19 +1,6 @@
-# novo_projeto.py
-import platform
-import os
-
-if platform.system() == "Windows":
-    destino_dir = "C:\\temp\\XMLs\\relatorio"
-    if not os.path.exists(destino_dir):
-        os.makedirs(destino_dir)
-elif platform.system() == "Linux":
-    destino_dir = "/tmp/XMLs/relatorio"
-    if not os.path.exists(destino_dir):
-        os.makedirs(destino_dir)
-
 # Relatório DANFE
 def htm_danfe(estabelecimento, nota, serie, data_nota_danfe, cliente, valor_produto_danfe, valor_frete_danfe, valor_desc_danfe, valor_nota_danfe,
-              soma_valores_danfe, soma_desc_danfe, soma_total_danfe, faltantes):
+              soma_valores_danfe, soma_desc_danfe, soma_total_danfe, faltantes, destino_dir):
 
     soma_valores_danfe_formatado = f"{soma_valores_danfe:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
     soma_desc_danfe_formatado = f"{soma_desc_danfe:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
@@ -93,7 +80,7 @@ def htm_danfe(estabelecimento, nota, serie, data_nota_danfe, cliente, valor_prod
         arquivo.write(conteudo_htm)
 
 # Relatório NFCE
-def htm_nfce(estabelecimento, data_nota, nota_numero,produto_nome, qtd, valor_unidade, total_notas, total, faltantes):
+def htm_nfce(estabelecimento, data_nota, nota_numero,produto_nome, qtd, valor_unidade, total_notas, total, faltantes, destino_dir):
 
     total_formatado = f"{total:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
