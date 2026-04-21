@@ -48,6 +48,8 @@ senha = crypto.recuperar_senha(open_key(),config["database"]["senhaemail"])
 #print(senha)
 caminho = config["database"]["caminhopasta"]
 emails = config["database"]["emailsparaenvio"]
+relatorio_str = config["database"]["relatorio"]
+relatorio = relatorio_str.strip().lower() == "true"
 
 dia = config["agendamento"]["dia"]
 executado_str = config["agendamento"]["executado"]  # exemplo: "False"

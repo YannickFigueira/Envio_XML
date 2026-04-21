@@ -66,15 +66,15 @@ def copiar_xmls(origem, destino_dir, cliente, mes_desejado, ano_desejado):
     return destino_compactar
 
 
-def compactar(origem, destino_zip):
+def compactar(origem, destino_zip, mes_desejado, ano_desejado):
     if not origem == "":
         pasta_origem = Path(origem)
         if pasta_origem.is_dir() or pasta_origem.is_file():
             if not destino_zip == "":
                 if system == 'Linux':
-                    destino_zip = f"{destino_zip}/{dados.atualizar_dados('cliente')}.zip"
+                    destino_zip = f"{destino_zip}/{ano_desejado}{mes_desejado}_{dados.atualizar_dados('cliente')}.zip"
                 elif system == 'Windows':
-                    destino_zip = f"{destino_zip}\\{dados.atualizar_dados('cliente')}.zip"
+                    destino_zip = f"{destino_zip}\\{ano_desejado}{mes_desejado}_{dados.atualizar_dados('cliente')}.zip"
                 # Cria o arquivo ZIP no destino
 
                 with zipfile.ZipFile(destino_zip, 'w', zipfile.ZIP_DEFLATED) as zipf:
@@ -97,7 +97,7 @@ def compactar(origem, destino_zip):
                             except Exception as e:
                                 logging.error(f"Erro ao compactar {caminho_completo}: {e}")
                         #print(f"{contador} / {len(arquivos)}")
-
+                shutil.rmtree(origem)
                     #atualizar_barra(total, total, progress_canvas)
                     #messagebox.showinfo("Completo", "Finalizado com exito.")
             #else:
@@ -128,11 +128,15 @@ def selecionar_pasta():
 
 # --- Inicia a compactação --- #
 def iniciar_compactacao(origem,
-                        destino_zip):
+                        destino_zip,
+                        mes_desejado,
+                        ano_desejado):
     t = threading.Thread(
         target=compactar,
         args=(origem,
-              destino_zip),
+              destino_zip,
+              mes_desejado,
+              ano_desejado),
         daemon=True
     )
     t.start()

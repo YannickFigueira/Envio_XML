@@ -4,15 +4,16 @@
         "version": "4.0.0"
     },
     "database": {
-        "cliente": "cliente",
+        "cliente": "cliente_novo",
         "email": "exemplo@dominio.com.br",
-        "senhaemail": "gAAAAABp57wnv3pC4iGYOLKPdaHdjgZNuNgzPpGgFU1Da36D-GNvLL779aQ9xOj4kH9M0o9nlztOz_UzlId9SkvHuCYW6Rus-g==",
+        "senhaemail": "gAAAAABp59hFWl6DfnuJKi1fvRWcluapg9PmRHlF3mPKm2ufmPGygug6OZZkJ6GeRhrL0Rn0hV5gtfF4GBKYoW8YugHWwYZYHA==",
         "caminhopasta": "/home/yannick/Documentos/Development/EnviarXMLPython/leitura",
         "emailsparaenvio": [
             "email1@dominio.com",
             "email2@dominio.com",
             "email3@dominio.com"
-        ]
+        ],
+        "relatorio": "True"
     },
     "agendamento": {
         "dia": "7",

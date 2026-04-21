@@ -3,11 +3,6 @@ import glob
 import relatorio
 
 def ler_dados_notas(caminho, dados):
-    print(caminho)
-
-    #caminho = "/home/yannick/Downloads/23847090000156_202602_0_documentos/*.xml"
-    #caminho = "/home/yannick/Documentos/Development/EnviarXMLPython/leitura"
-
     soma_valores = 0
     soma_valores_nota = 0
 
