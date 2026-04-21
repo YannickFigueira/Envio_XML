@@ -50,6 +50,9 @@ caminho = config["database"]["caminhopasta"]
 emails = config["database"]["emailsparaenvio"]
 relatorio_str = config["database"]["relatorio"]
 relatorio = relatorio_str.strip().lower() == "true"
+modoenvio = config["database"]["modoenvio"]
+telegrambot = config["database"]["telegrambot"]
+chat_id = config["database"]["chat_id"]
 
 dia = config["agendamento"]["dia"]
 executado_str = config["agendamento"]["executado"]  # exemplo: "False"
@@ -66,6 +69,8 @@ def atualizar_dados(dados):
     # print(senha)
     caminho = config["database"]["caminhopasta"]
     emails = config["database"]["emailsparaenvio"]
+    telegrambot = config["database"]["telegrambot"]
+    chat_id = config["database"]["chat_id"]
 
     dia = config["agendamento"]["dia"]
     executado_str = config["agendamento"]["executado"]  # exemplo: "False"
@@ -75,6 +80,10 @@ def atualizar_dados(dados):
         return cliente
     elif dados == "caminho":
         return caminho
+    elif dados == "telegrambot":
+        return telegrambot
+    elif dados == "chat_id":
+        return chat_id
 
 ## for email_envio in emails:
 ##     print("Enviando de:", email, "Enviando para:", email_envio)

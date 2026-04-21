@@ -65,8 +65,8 @@ def copiar_xmls(origem, destino_dir, cliente, mes_desejado, ano_desejado):
                 #print(f"Arquivo {arquivo} copiado (criado em {data_modificacao})")
     return destino_compactar
 
-
-def compactar(origem, destino_zip, mes_desejado, ano_desejado):
+resultado = {}
+def compactar(origem, destino_zip, mes_desejado, ano_desejado, out):
     if not origem == "":
         pasta_origem = Path(origem)
         if pasta_origem.is_dir() or pasta_origem.is_file():
@@ -107,6 +107,8 @@ def compactar(origem, destino_zip, mes_desejado, ano_desejado):
     #else:
         #messagebox.showinfo("Verificar", "Digite algo ou selecione uma pasta")
 
+    out["arquivo"] = destino_zip
+
 def enviar_email():
     agora = datetime.now()
     dia = agora.strftime("%d")
@@ -136,10 +138,12 @@ def iniciar_compactacao(origem,
         args=(origem,
               destino_zip,
               mes_desejado,
-              ano_desejado),
+              ano_desejado, resultado),
         daemon=True
     )
     t.start()
+    t.join()
+    return resultado["arquivo"]
 
 def gravar_dados(cliente, email, senha, pasta, emails):
     dados.config["database"]["cliente"] = cliente

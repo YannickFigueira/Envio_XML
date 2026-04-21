@@ -1,7 +1,8 @@
+import subprocess
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
 
-import dados
+import telegrambot
 import metodos, verificarversao, xmlreadnota
 import platform, os
 
@@ -17,11 +18,59 @@ elif platform.system() == "Linux":
         os.makedirs(destino_dir)
 
 def iniciar_janela(version, repo):
+    title = "Envio XML"
+    # Criar barra de menu
+    barra_menu = tk.Menu(root)
+    root.config(menu=barra_menu)
+
+    def visitar_site():
+        pagina = f"https://github.com/YannickFigueira"
+        resposta = messagebox.askyesno("Sobre", f"{title} v{version}\n"
+                                                f"Deseja visitar a página\n"
+                                                f"Desenvolvedor YannickFigueira\n"
+                                                f"chronostimeinchain@gmail.com")
+        if resposta:
+            verificarversao.webbrowser.open(pagina)
+
+    def abrir_logs():
+        if platform.system() == "Windows":
+            arquivo = "C:\\Programa Igreja\\doc\\CHANGELOG.md"
+            subprocess.run(["notepad", arquivo])
+        elif platform.system() == "Linux":
+            arquivo = "/usr/share/doc/programaigreja/CHANGELOG.md"
+            subprocess.run(["xdg-open", arquivo])  # ou "gedit"
+        else:
+            print("Sistema não suportado")
+    def reset_telegram():
+        metodos.dados.config["database"]["telegrambot"] = ""
+        metodos.dados.config["database"]["chat_id"] = ""
+        messagebox.showinfo("Completo", "Dados apagados com sucesso!")
+
+    # Menu Ajuda
+    menu_ajuda = tk.Menu(barra_menu, tearoff=0)
+    menu_ajuda.add_command(label="Verificar atualização",
+                           command=lambda: verificarversao.consultar_lancamento(repo, version))
+    menu_ajuda.add_command(label="Notas da versão",
+                           command=lambda: abrir_logs())
+    menu_ajuda.add_command(label="Sobre",
+                           command=lambda: visitar_site())
+    barra_menu.add_cascade(label="Ajuda", menu=menu_ajuda)
+
+    # Menu Config
+    menu_config = tk.Menu(barra_menu, tearoff=0)
+    menu_config.add_command(label="Resetar dados Telegram",
+                            command=lambda: reset_telegram())
+    barra_menu.add_cascade(label="Configuração", menu=menu_config)
+
+    # Menu Sair
+    barra_menu.add_command(label="Sair", command=root.quit)
+    ### Fim da barra de menu
+
     # Variaveis
     largura_entradas = 25
     linha = 0
 
-    root.title(f"Envio XML {version}")
+    root.title(f"{title} {version}")
     root.resizable(False, False)
 
     label_cliente = ttk.Label(root, text="Cliente:")
@@ -58,7 +107,7 @@ def iniciar_janela(version, repo):
     linha += 1
 
     checkbox_relatorio = tk.BooleanVar()
-    checkbox_relatorio.set(dados.relatorio)
+    checkbox_relatorio.set(metodos.dados.relatorio)
     checkbox = ttk.Checkbutton(root, text="Gerar relatório:", variable=checkbox_relatorio)
     checkbox.grid(row=linha, column=0, padx=10, pady=(0, 8), sticky="w")
 
@@ -80,11 +129,6 @@ def iniciar_janela(version, repo):
     button_gravar.grid(row=linha, column=0, columnspan=4, padx=10, pady=(0, 8), sticky="we")
     linha += 1
 
-    # verificar versão
-    button_update = ttk.Button(root, text="Verificar atualização",
-                               command=lambda: verificarversao.consultar_lancamento(repo, version))
-    button_update.grid(row=linha, column=0, columnspan=4, padx=10, pady=(5, 8), sticky="we")
-
     # Inicialização
     def carregar_dados():
         entrada_cliente.delete(0, tk.END)
@@ -104,7 +148,16 @@ def iniciar_janela(version, repo):
                                                         metodos.dados.atualizar_dados('cliente'), mes_desejado, ano_desejado)
         if checkbox_relatorio.get():
             xmlreadnota.ler_dados_notas(caminho, metodos.dados)
-        metodos.iniciar_compactacao(caminho, destino_dir, mes_desejado, ano_desejado)
+        destino_zip = metodos.iniciar_compactacao(caminho, destino_dir, mes_desejado, ano_desejado)
+        if modo_envio_cb["values"][0] == "Telegram":
+            if metodos.dados.atualizar_dados('telegrambot') == "":
+                token, chat_id = telegrambot.janela_telegram()
+                metodos.dados.config["database"]["telegrambot"] = token
+                metodos.dados.config["database"]["chat_id"] = chat_id
+            else:
+                print(metodos.dados.atualizar_dados('telegrambot'))
+                # reativar ao finalizar o funcionamento
+                #telegrambot.enviar_arquivo(metodos.dados.atualizar_dados('telegrambot'), metodos.dados.atualizar_dados('chat_id'), destino_zip)
         #metodos.enviar_email()
 
     root.mainloop()
