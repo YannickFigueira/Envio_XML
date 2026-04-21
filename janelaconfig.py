@@ -41,7 +41,7 @@ def iniciar_janela(version, repo):
     label_senha.grid(row=linha, column=2, padx=(10, 0), pady=(5, 8), sticky="w")
 
     entrada_senha = ttk.Entry(root, width=15, show="*")
-    entrada_senha.grid(row=linha, column=3, padx=10, pady=(5, 8), sticky="w")
+    entrada_senha.grid(row=linha, column=3, padx=10, pady=(5, 8), sticky="we")
     linha += 1
 
     label_caminho = ttk.Label(root, text="Caminho do sistema:")
@@ -61,6 +61,12 @@ def iniciar_janela(version, repo):
     checkbox_relatorio.set(dados.relatorio)
     checkbox = ttk.Checkbutton(root, text="Gerar relatório:", variable=checkbox_relatorio)
     checkbox.grid(row=linha, column=0, padx=10, pady=(0, 8), sticky="w")
+
+    ttk.Label(root, text="Modo de envio:").grid(row=linha, column=2, padx=5, pady=5, sticky="w")
+    modo_envio_cb = ttk.Combobox(root, width=15, takefocus=False, state="readonly")
+    modo_envio_cb.grid(row=linha, column=3, padx=10, pady=5, sticky="ew")
+    modo_envio_cb["values"] = ["Telegram"]
+    modo_envio_cb.current(0)
     linha += 1
 
     # Área de texto
