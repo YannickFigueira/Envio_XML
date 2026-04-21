@@ -253,14 +253,31 @@ def ler_dados_notas(caminho, dados):
             valor_nota_relatorio += separar[7] + ","
 
     if index_danfe != 0:
-        if index_nfce != 0:
-            nota = nota_danfe_relatorio.split(",")
-            print(nota[len(nota) - 2])
-            dados.config["notas"]["ultima_nota_danfe"] = nota[len(nota) - 2].replace(" ", "")
-            dados.gravar()
+        faltantes = ""
+        nota = nota_danfe_relatorio.split(",")
+        notas_totais = int(nota[len(nota)-2]) - int(nota[0]) + 1
+        #print(notas_totais)
+        #print(len(nota) - 1)
+        #print(nota[len(nota) - 2]) # Notas registradas
+        if nota != notas_totais:
+            contador = notas_totais
+            valor_nota = int(nota[0])
+            lista1 = list(range(valor_nota, valor_nota + contador))
+
+            # Converter para inteiros, ignorando strings vazias
+            lista2 = [int(x) for x in nota if x.strip().isdigit()]
+
+            # Guardar todos os faltantes em uma lista
+            faltantes = [x for x in lista1 if x not in lista2]
+
+            #print(faltantes)
+
+        dados.config["notas"]["ultima_nota_danfe"] = nota[len(nota) - 2].replace(" ", "")
+        dados.gravar()
+
         relatorio.htm_danfe(estabelecimento, nota_danfe_relatorio.split(","), serie_relatorio.split(","), data_relatorio.split(","), cliente_relatorio.split(","),
                         valor_produto_relatorio.split(","),valor_frete_relatorio.split(","), valor_desc_relatorio.split(","),
-                        valor_nota_relatorio.split(","), soma_valores_danfe, soma_desc_danfe, soma_total_danfe)
+                        valor_nota_relatorio.split(","), soma_valores_danfe, soma_desc_danfe, soma_total_danfe, faltantes)
 
     # separador do NFCE
     valor = produto.split(",")
@@ -309,13 +326,32 @@ def ler_dados_notas(caminho, dados):
             valor_total_produto += separar[4] + ","
 
     if index_nfce != 0:
+        faltantes = ""
         nota = nf_numero.split(",")
-        print(nota[len(nota)-2])
+        notas_totais = int(nota[len(nota) - 2]) - int(nota[0]) + 1
+        # print(notas_totais)
+        # print(len(nota) - 1)
+        # print(nota[len(nota) - 2]) # Notas registradas
+        if nota != notas_totais:
+            contador = notas_totais
+            valor_nota = int(nota[0])
+            lista1 = list(range(valor_nota, valor_nota + contador))
+
+            # Converter para inteiros, ignorando strings vazias
+            lista2 = [int(x) for x in nota if x.strip().isdigit()]
+
+            # Guardar todos os faltantes em uma lista
+            faltantes = [x for x in lista1 if x not in lista2]
+
+            #print(faltantes)
+
+        nota = nf_numero.split(",")
+        #print(nota[len(nota)-2])
         dados.config["notas"]["ultima_nota_nfce"] = nota[len(nota) - 2].replace(" ", "")
         dados.gravar()
 
         relatorio.htm_nfce(estabelecimento, data_nota_soma.split(","), nf_numero.split(","), p_nome.split(","), qtd_produto.split(","),
-                       valor_produto.split(","), valor_total_produto.split(","), soma_valores)
+                       valor_produto.split(","), valor_total_produto.split(","), soma_valores, faltantes)
 
 
 #ler_dados_notas("texto")

@@ -13,7 +13,7 @@ elif platform.system() == "Linux":
 
 # Relatório DANFE
 def htm_danfe(estabelecimento, nota, serie, data_nota_danfe, cliente, valor_produto_danfe, valor_frete_danfe, valor_desc_danfe, valor_nota_danfe,
-              soma_valores_danfe, soma_desc_danfe, soma_total_danfe):
+              soma_valores_danfe, soma_desc_danfe, soma_total_danfe, faltantes):
 
     soma_valores_danfe_formatado = f"{soma_valores_danfe:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
     soma_desc_danfe_formatado = f"{soma_desc_danfe:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
@@ -39,13 +39,16 @@ def htm_danfe(estabelecimento, nota, serie, data_nota_danfe, cliente, valor_prod
             <td nowrap valign=top bgcolor=#FFFFFF align=right><font face="Microsoft Sans Serif" size=1>       0,00<br></font></td>
            </tr>"""
 
-
+    registrar_notas = ""
+    if faltantes != "":
+        registrar_notas = f"<br><font size=4 color=#000000><b>Notas faltando nos XMLs {faltantes}</b></font><br></center><br>"
     conteudo_htm = f"""<html><head><title>{estabelecimento} - Relatório de vendas</title></head>
     <body bgcolor="#FFFFFF" vlink="#FF0000" leftmargin="0"><center>
     <br>Relatório gerado a partir dos XMLs emitidos
     <br><img src="logotip.jpg" alt="{estabelecimento}">
     <br><font size=3 color=#000000><b>{estabelecimento}</b></font>
-    <br><font size=4 color=#000000><b>Relatório de vendas</b></font><br></center><br>
+    <br><font size=4 color=#000000><b>Relatório de vendas</b></font>
+    {registrar_notas}
     <center>
     <table border=0>
      <tr>
@@ -90,7 +93,7 @@ def htm_danfe(estabelecimento, nota, serie, data_nota_danfe, cliente, valor_prod
         arquivo.write(conteudo_htm)
 
 # Relatório NFCE
-def htm_nfce(estabelecimento, data_nota, nota_numero,produto_nome, qtd, valor_unidade, total_notas, total):
+def htm_nfce(estabelecimento, data_nota, nota_numero,produto_nome, qtd, valor_unidade, total_notas, total, faltantes):
 
     total_formatado = f"{total:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
@@ -109,12 +112,16 @@ def htm_nfce(estabelecimento, data_nota, nota_numero,produto_nome, qtd, valor_un
             <td nowrap valign=top bgcolor=#FFFFFF align=right><font face="Microsoft Sans Serif" size=1>{total_notas_formatado}<br></font></td>
            </tr>"""
 
+    registrar_notas = ""
+    if faltantes != "":
+        registrar_notas = f"<br><font size=4 color=#000000><b>Notas faltando nos XMLs {faltantes}</b></font><br></center><br>"
     conteudo_htm = f"""<html><head><title>{estabelecimento} - Relatório de vendas (Cupom Fiscal)</title></head>
     <body bgcolor="#FFFFFF" vlink="#FF0000" leftmargin="0"><center>
     <br>Relatório gerado a partir dos XMLs emitidos
     <br><img src="logotip.jpg" alt="{estabelecimento}">
     <br><font size=3 color=#000000><b>{estabelecimento}</b></font>
-    <br><font size=4 color=#000000><b>Relatório de vendas (Cupom Fiscal)</b></font><br></center><br>
+    <br><font size=4 color=#000000><b>Relatório de vendas (Cupom Fiscal)</b></font>
+    {registrar_notas}
     <center>
     <table border=1 style="border-collapse:Collapse" cellspacing=0 cellpadding=4>
      <tr  bgcolor=#EBEBEB   align=left>
