@@ -1,4 +1,5 @@
 import subprocess
+import sys
 import tkinter as tk
 from tkinter import ttk, messagebox
 
@@ -6,7 +7,10 @@ import telegrambot
 import metodos, verificarversao, xmlreadnota
 import platform, os
 
-root = tk.Tk()
+from pystray import Icon, MenuItem, Menu
+from PIL import Image
+
+
 
 if platform.system() == "Windows":
     destino_dir = "C:\\temp\\XMLs"
@@ -18,6 +22,7 @@ elif platform.system() == "Linux":
         os.makedirs(destino_dir)
 
 def iniciar_janela(version, repo):
+    root = tk.Tk()
     title = "Envio XML"
     # Criar barra de menu
     barra_menu = tk.Menu(root)
@@ -63,15 +68,25 @@ def iniciar_janela(version, repo):
     barra_menu.add_cascade(label="Ajuda", menu=menu_ajuda)
 
     # Menu Sair
-    barra_menu.add_command(label="Sair", command=root.quit)
+    barra_menu.add_command(label="Sair", command=root.destroy)
     ### Fim da barra de menu
 
     # Variaveis
     largura_entradas = 25
     linha = 0
 
+    def esconder_janela():
+        root.withdraw()  # apenas esconde a janela
+
     root.title(f"{title} {version}")
+    if platform.system() == "Windows":
+        root.iconbitmap("imagens/xml.ico")
+    elif platform.system() == "Linux":
+        icon = tk.PhotoImage(file="imagens/xml.png")
+        root.iconphoto(True, icon)
     root.resizable(False, False)
+    # Redefine o comportamento do botão de fechar
+    #root.protocol("WM_DELETE_WINDOW", esconder_janela)
 
     label_cliente = ttk.Label(root, text="Cliente:")
     label_cliente.grid(row=linha, column=0, padx=(10, 0), pady=(5, 8), sticky="w")
@@ -167,3 +182,22 @@ def iniciar_janela(version, repo):
         #metodos.enviar_email()
 
     root.mainloop()
+
+def fechar_programa(icon, item):
+    icon.stop()
+    sys.exit()
+
+def inciar_tray(version, repo):
+
+    # Carregar ícone (use um PNG)
+    image = Image.open("imagens/xml.png")
+
+    # Criar menu da bandeja
+    menu = Menu(
+        MenuItem("Configurações", lambda icon, item: iniciar_janela(version, repo)),
+        MenuItem("Fechar", fechar_programa)
+    )
+
+    # Criar ícone na bandeja
+    icon = Icon("EnvioXML", image, "Envio XML", menu)
+    icon.run()
