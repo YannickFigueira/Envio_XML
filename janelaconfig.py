@@ -46,6 +46,12 @@ def iniciar_janela(version, repo):
         metodos.dados.config["database"]["chat_id"] = ""
         messagebox.showinfo("Completo", "Dados apagados com sucesso!")
 
+    # Menu Config
+    menu_config = tk.Menu(barra_menu, tearoff=0)
+    menu_config.add_command(label="Resetar dados Telegram",
+                            command=lambda: reset_telegram())
+    barra_menu.add_cascade(label="Configuração", menu=menu_config)
+
     # Menu Ajuda
     menu_ajuda = tk.Menu(barra_menu, tearoff=0)
     menu_ajuda.add_command(label="Verificar atualização",
@@ -55,12 +61,6 @@ def iniciar_janela(version, repo):
     menu_ajuda.add_command(label="Sobre",
                            command=lambda: visitar_site())
     barra_menu.add_cascade(label="Ajuda", menu=menu_ajuda)
-
-    # Menu Config
-    menu_config = tk.Menu(barra_menu, tearoff=0)
-    menu_config.add_command(label="Resetar dados Telegram",
-                            command=lambda: reset_telegram())
-    barra_menu.add_cascade(label="Configuração", menu=menu_config)
 
     # Menu Sair
     barra_menu.add_command(label="Sair", command=root.quit)
@@ -106,10 +106,11 @@ def iniciar_janela(version, repo):
     entrada_caminho.grid(row=linha, column=0, columnspan=4, padx=10, pady=(5, 8), sticky="we")
     linha += 1
 
-    checkbox_relatorio = tk.BooleanVar()
-    checkbox_relatorio.set(metodos.dados.relatorio)
-    checkbox = ttk.Checkbutton(root, text="Gerar relatório:", variable=checkbox_relatorio)
-    checkbox.grid(row=linha, column=0, padx=10, pady=(0, 8), sticky="w")
+    ttk.Label(root, text="Sistema:").grid(row=linha, column=0, padx=5, pady=5, sticky="w")
+    sistema_cb = ttk.Combobox(root, width=15, takefocus=False, state="readonly")
+    sistema_cb.grid(row=linha, column=1, padx=10, pady=5, sticky="ew")
+    sistema_cb["values"] = ["SmallSoft"]
+    sistema_cb.current(0)
 
     ttk.Label(root, text="Modo de envio:").grid(row=linha, column=2, padx=5, pady=5, sticky="w")
     modo_envio_cb = ttk.Combobox(root, width=15, takefocus=False, state="readonly")
@@ -117,6 +118,11 @@ def iniciar_janela(version, repo):
     modo_envio_cb["values"] = ["Telegram"]
     modo_envio_cb.current(0)
     linha += 1
+
+    checkbox_relatorio = tk.BooleanVar()
+    checkbox_relatorio.set(metodos.dados.relatorio)
+    checkbox = ttk.Checkbutton(root, text="Gerar relatório:", variable=checkbox_relatorio)
+    checkbox.grid(row=linha, column=0, padx=10, pady=(0, 8), sticky="w")
 
     # Área de texto
     text_area = tk.Text(root, width=50, height=5)
