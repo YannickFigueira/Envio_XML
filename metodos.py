@@ -67,14 +67,16 @@ def copiar_xmls(origem, destino_dir, cliente, mes_desejado, ano_desejado):
 
 resultado = {}
 def compactar(origem, destino_zip, mes_desejado, ano_desejado, out):
+    mes = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
+
     if not origem == "":
         pasta_origem = Path(origem)
         if pasta_origem.is_dir() or pasta_origem.is_file():
             if not destino_zip == "":
                 if system == 'Linux':
-                    destino_zip = f"{destino_zip}/{ano_desejado}{mes_desejado}_{dados.atualizar_dados('cliente')}.zip"
+                    destino_zip = f"{destino_zip}/{ano_desejado}_{mes[mes_desejado - 1]}_{dados.atualizar_dados('cliente')}.zip"
                 elif system == 'Windows':
-                    destino_zip = f"{destino_zip}\\{ano_desejado}{mes_desejado}_{dados.atualizar_dados('cliente')}.zip"
+                    destino_zip = f"{destino_zip}\\{ano_desejado}_{mes[mes_desejado - 1]}_{dados.atualizar_dados('cliente')}.zip"
                 # Cria o arquivo ZIP no destino
 
                 with zipfile.ZipFile(destino_zip, 'w', zipfile.ZIP_DEFLATED) as zipf:
