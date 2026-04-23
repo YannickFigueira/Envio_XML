@@ -2,8 +2,10 @@ from cryptography.fernet import Fernet
 
 
 # Gerar chave (faça isso uma vez e guarde em arquivo seguro)
+def pegar_chave():
+    chave = Fernet.generate_key()
 
-chave = Fernet.generate_key()
+    return chave
 #print(chave)
 
 #print(fernet)

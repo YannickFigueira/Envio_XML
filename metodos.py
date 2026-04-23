@@ -1,3 +1,4 @@
+import inspect
 import os, shutil
 import threading
 import zipfile
@@ -8,7 +9,14 @@ from tkinter import messagebox, filedialog
 import logging
 from datetime import datetime
 
-# Inicializar dados
+import telegrambot
+
+
+def log_mensagem(msg):
+    frame = inspect.currentframe().f_back
+    linha = frame.f_lineno
+    arquivo = frame.f_code.co_filename
+    print(f"{msg} (arquivo: {arquivo}, linha: {linha})")
 
 # Variáveis
 home_dir = os.path.expanduser('~')
@@ -62,7 +70,7 @@ def copiar_xmls(origem, destino_dir, cliente, mes_desejado, ano_desejado):
 
             # Verificar se o arquivo pertence ao mês/ano desejado
             if data_modificacao.month == mes_desejado and data_modificacao.year == ano_desejado:
-                print(f"{arquivo} - copiando arquivo...")
+                log_mensagem(f"{arquivo} - copiando arquivo...")
                 qtd_arquivos = True
                 shutil.copy2(caminho_arquivo, destino_dir)
                 #print(f"Arquivo {arquivo} copiado (criado em {data_modificacao})")
@@ -125,7 +133,7 @@ def enviar_email():
     dia_registro = float(dados.ler_dados('dia'))
 
     if (float(dia) <= dia_registro) and (dados.ler_dados('executado') == False):
-        print("Dia da semana")
+        log_mensagem("Dia da semana")
 
     #hora = agora.strftime("%H")
     #minuto = agora.strftime("%M")
@@ -155,16 +163,26 @@ def iniciar_compactacao(origem,
     t.join()
     return resultado["arquivo"]
 
-def gravar_dados(cliente, email, senha, pasta, emails):
-    dados.gravar_dados("cliente", cliente)
-    dados.gravar_dados("email", email)
-
-    dados.gravar_dados("senhaemail", dados.crypto.cripto_senha(dados.open_key(),senha))
-    dados.gravar_dados("caminhopasta", pasta)
-    dados.gravar_dados("emailsparaenvio", emails)
-    messagebox.showinfo("Completo", "Dados gravados com sucesso!")
-
 dados.gerar_chave()
+
+def gravar_dados(cliente, email, senha, pasta, emails):
+    caminho = Path(pasta)
+    if caminho.exists() and pasta != "":
+        dados.gravar_dados("cliente", cliente)
+        dados.gravar_dados("email", email)
+
+        dados.gravar_dados("senhaemail", dados.crypto.cripto_senha(dados.open_key(), senha))
+        dados.gravar_dados("caminhopasta", pasta)
+        dados.gravar_dados("emailsparaenvio", emails)
+        if dados.ler_dados('telegrambot') == "":
+            token, chat_id = telegrambot.janela_telegram()
+            dados.gravar_dados("telegrambot", token)
+            dados.gravar_dados("chat_id", chat_id)
+        resposta = messagebox.askyesno("Completo", "Dados gravados com sucesso!\nDeseja fazer a primeira execução?")
+
+        return resposta
+    else:
+        messagebox.showwarning("ERRO", "Pasta não existe!")
 
 dados.open_key()
 

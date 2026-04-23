@@ -1,16 +1,67 @@
 import json
+import os
+
 import crypto
 import base64
 
+# Dados iniciais
+dados_chave = {
+    "app": {
+        "name": "EnvioXML",
+        "version": "4.0.0"
+    },
+    "crypto": {
+        "key": ""
+    }
+}
+
+dados_config = {
+    "app": {
+        "name": "EnvioXML",
+        "version": "4.0.0"
+    },
+    "database": {
+        "cliente": "cliente",
+        "email": "exemplo@dominio.com.br",
+        "senhaemail": "",
+        "caminhopasta": "",
+        "emailsparaenvio": [
+            "exemplo1@dominio.com",
+            "exemplo2@dominio.com",
+            "exemplo3@dominio.com.br"
+        ],
+        "dia": "7",
+        "executado": "False",
+        "ultima_nota_danfe": "",
+        "ultima_nota_nfce": "",
+        "relatorio": "True",
+        "modoenvio": "Telegram",
+        "telegrambot": "",
+        "chat_id": ""
+    }}
+
 # Diretórios base
 dados_dir = "dados"
+
+if not os.path.exists(dados_dir):
+    os.makedirs(dados_dir)
+
+    with open(f"{dados_dir}/chave.json", "w", encoding="utf-8") as c:
+        json.dump(dados_chave, c, indent=4, ensure_ascii=False)
+
+    with open(f"{dados_dir}/config.json", "w", encoding="utf-8") as c:
+        json.dump(dados_config, c, indent=4, ensure_ascii=False)
 
 # --- Leitura ---
 with open(f"{dados_dir}/chave.json", "r", encoding="utf-8") as c:
     chave = json.load(c)
 
 def open_key():
-    chave_crypto = base64.b64decode(chave["crypto"]["key"])
+    valor_chave = chave["crypto"]["key"]
+    if not valor_chave == "":
+        chave_crypto = base64.b64decode(chave["crypto"]["key"])
+    else:
+        chave_crypto = chave["crypto"]["key"]
     # print(chave_crypto, "valor recuperado")
 
     return chave_crypto
@@ -44,7 +95,7 @@ def gerar_chave():
     # print(crypto.chave, " Valor da chave")
 
     if chave_leitura == "":
-        gravar_chave(crypto.chave)
+        gravar_chave(crypto.pegar_chave())
 
 def ler_dados(dados):
     with open(f"{dados_dir}/config.json", "r", encoding="utf-8") as d:
@@ -53,7 +104,10 @@ def ler_dados(dados):
     # Acessando dados
     cliente = config["database"]["cliente"]
     email = config["database"]["email"]
-    senha = crypto.recuperar_senha(open_key(), config["database"]["senhaemail"])
+    if not config["database"]["senhaemail"] == "":
+        senha = crypto.recuperar_senha(open_key(), config["database"]["senhaemail"])
+    else:
+        senha = ""
     caminho = config["database"]["caminhopasta"]
     emails = config["database"]["emailsparaenvio"]
     relatorio_str = config["database"]["relatorio"]

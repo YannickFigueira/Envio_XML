@@ -1,5 +1,7 @@
 import xml.etree.ElementTree as Et
 import glob
+
+import metodos
 import relatorio
 
 def ler_dados_notas(caminho, dados):
@@ -269,8 +271,9 @@ def ler_dados_notas(caminho, dados):
 
             #print(faltantes)
 
-        dados.config["notas"]["ultima_nota_danfe"] = nota[len(nota) - 2].replace(" ", "")
-        dados.gravar()
+        #dados.config["notas"]["ultima_nota_danfe"] = nota[len(nota) - 2].replace(" ", "")
+        dados.gravar_dados("ultima_nota_danfe", nota[len(nota) - 2].replace(" ", ""))
+        #dados.gravar()
 
 
         relatorio.htm_danfe(estabelecimento, nota_danfe_relatorio.split(","), serie_relatorio.split(","), data_relatorio.split(","), cliente_relatorio.split(","),
@@ -345,8 +348,9 @@ def ler_dados_notas(caminho, dados):
 
         nota = nf_numero.split(",")
         #print(nota[len(nota)-2])
-        dados.config["notas"]["ultima_nota_nfce"] = nota[len(nota) - 2].replace(" ", "")
-        dados.gravar()
+        #dados.config["notas"]["ultima_nota_nfce"] = nota[len(nota) - 2].replace(" ", "")
+        dados.gravar_dados("ultima_nota_nfce", nota[len(nota) - 2].replace(" ", ""))
+        #dados.gravar()
 
         relatorio.htm_nfce(estabelecimento, data_nota_soma.split(","), nf_numero.split(","), p_nome.split(","), qtd_produto.split(","),
                        valor_produto.split(","), valor_total_produto.split(","), soma_valores, faltantes, caminho)

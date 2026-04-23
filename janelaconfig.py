@@ -5,12 +5,15 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from datetime import datetime
 
-import telegrambot
 import metodos, verificarversao, xmlreadnota
 import platform, os
 
 from pystray import Icon, MenuItem, Menu
 from PIL import Image
+
+agora = datetime.now()
+mes = agora.strftime("%m")
+ano = agora.strftime("%Y")
 
 if platform.system() == "Windows":
     destino_dir = "C:\\temp\\XMLs"
@@ -22,6 +25,8 @@ elif platform.system() == "Linux":
         os.makedirs(destino_dir)
 
 def iniciar_janela(version, repo):
+
+    ### Configuração da janela
     def esconder_janela():
         root.withdraw()
 
@@ -34,6 +39,7 @@ def iniciar_janela(version, repo):
         sys.exit()
 
     def preparar_xmls(mes_desejado, ano_desejado):
+
 
         if mes_desejado == 1:
             mes_desejado = 12
@@ -51,20 +57,19 @@ def iniciar_janela(version, repo):
             if checkbox_relatorio.get():
                 xmlreadnota.ler_dados_notas(caminho, metodos.dados)
             destino_zip = metodos.iniciar_compactacao(caminho, destino_dir, mes_desejado, ano_desejado)
-            if modo_envio_cb["values"][0] == "Telegram":
-                if metodos.dados.ler_dados('telegrambot') == "":
-                    token, chat_id = telegrambot.janela_telegram()
-                    metodos.dados.gravar_dados("telegrambot", token)
-                    metodos.dados.gravar_dados("chat_id", chat_id)
-                else:
-                    print("Arquivo")
-                    # reativar ao finalizar o funcionamento
-                    #telegrambot.enviar_arquivo(metodos.dados.atualizar_dados('telegrambot'), metodos.dados.atualizar_dados('chat_id'), destino_zip)
-            #metodos.enviar_email()
+            if metodos.dados.ler_dados('telegrambot') == "Telegram":
+                metodos.log_mensagem("Arquivo")
+                # reativar ao finalizar o funcionamento
+                metodos.telegrambot.enviar_arquivo(metodos.dados.ler_dados('telegrambot'), metodos.dados.ler_dados('chat_id'), destino_zip)
+                #metodos.enviar_email()
         else:
             if modo_envio_cb["values"][0] == "Telegram":
-                print("Mensagem")
-                #telegrambot.enviar_mensagem(metodos.dados.atualizar_dados('telegrambot'), metodos.dados.atualizar_dados('chat_id'),f"{ano_desejado} - {mes_str[mes_desejado - 1]} - {metodos.dados.atualizar_dados('cliente')}\nNenhum XML gerado")
+                metodos.log_mensagem("Mensagem janelaconfig")
+                metodos.telegrambot.enviar_mensagem(metodos.dados.ler_dados('telegrambot'), metodos.dados.ler_dados('chat_id'),f"{ano_desejado} - {mes_str[mes_desejado - 1]} - {metodos.dados.ler_dados('cliente')}\nNenhum XML gerado")
+
+    def executar_acao(resposta):
+        if resposta:
+            preparar_xmls(int(mes), int(ano))
 
     root = tk.Tk()
     title = "Envio XML"
@@ -89,14 +94,44 @@ def iniciar_janela(version, repo):
             arquivo = "/usr/share/doc/programaigreja/CHANGELOG.md"
             subprocess.run(["xdg-open", arquivo])  # ou "gedit"
         else:
-            print("Sistema não suportado")
+            metodos.log_mensagem("Sistema não suportado")
     def reset_telegram():
         metodos.dados.gravar_dados("telegrambot", "")
         metodos.dados.gravar_dados("chat_id", "")
         messagebox.showinfo("Completo", "Dados apagados com sucesso!")
 
+    def alterar_dados():
+        alterar = tk.Tk()
+        alterar.title("Alterar Dados")
+        linha = 0
+
+        alterar.resizable(False, False)
+
+        label_ano = ttk.Label(alterar, text="Ano da nota:")
+        label_ano.grid(row=linha, column=0, padx=(10, 0), pady=(5, 8), sticky="w")
+
+        ent_ano = ttk.Entry(alterar, width=50)
+        ent_ano.grid(row=linha, column=1, padx=(10, 0), pady=(5, 8), sticky="we")
+        linha += 1
+
+        lbl_mes = ttk.Label(alterar, text="mês da nota:")
+        lbl_mes.grid(row=linha, column=0, padx=(10, 0), pady=(5, 8), sticky="w")
+
+        ent_mes = ttk.Entry(alterar, width=50)
+        ent_mes.grid(row=linha, column=1, padx=(10, 0), pady=(5, 8), sticky="we")
+        linha += 1
+
+        btn_executar = ttk.Button(alterar, text="Confirmar dados",
+                                   command=lambda: (preparar_xmls(int(ent_mes.get()) + 1, int(ent_ano.get())), alterar.quit()))
+        btn_executar.grid(row=linha, column=0, columnspan=4, padx=10, pady=(5, 8), sticky="we")
+
+        alterar.mainloop()
+
+
+
     # Menu Config
     menu_config = tk.Menu(barra_menu, tearoff=0)
+    menu_config.add_command(label="Liberar teste", command=alterar_dados)
     menu_config.add_command(label="Resetar dados Telegram",
                             command=lambda: reset_telegram())
     barra_menu.add_cascade(label="Configuração", menu=menu_config)
@@ -185,12 +220,11 @@ def iniciar_janela(version, repo):
     text_area = tk.Text(root, width=50, height=5)
     text_area.grid(row=linha, column=0, columnspan=4, padx=10, pady=(0, 8), sticky="we")
     linha += 1
-
-    button_gravar = ttk.Button(root, text="Gravar", command = lambda: (metodos.gravar_dados(entrada_cliente.get(),
-                                                                                            entrada_email.get(),
-                                                                                            entrada_senha.get(),
-                                                                                            entrada_caminho.get(),
-                                                                                            text_area.get("1.0", tk.END))    ))
+    button_gravar = ttk.Button(root, text="Gravar", command = lambda: (executar_acao(metodos.gravar_dados(entrada_cliente.get().replace(" ", ""),
+                                                                                            entrada_email.get().replace(" ", ""),
+                                                                                            entrada_senha.get().replace(" ", ""),
+                                                                                            entrada_caminho.get().replace(" ", ""),
+                                                                                            text_area.get("1.0", tk.END))    )))
     button_gravar.grid(row=linha, column=0, columnspan=4, padx=10, pady=(0, 8), sticky="we")
     linha += 1
 
@@ -226,12 +260,11 @@ def iniciar_janela(version, repo):
 
     threading.Thread(target=run_icon, daemon=True).start()
 
-    agora = datetime.now()
-    mes = agora.strftime("%m")
-    ano = agora.strftime("%Y")
-
     ## Colocar if para verificar o dia de execução
-    preparar_xmls(int(mes), int(ano))
+    if not metodos.dados.ler_dados('caminho') == "":
+        preparar_xmls(int(mes), int(ano))
+    else:
+        root.deiconify()
 
     ### Desenvolvimento
     entrada_email.config(state="disabled")
