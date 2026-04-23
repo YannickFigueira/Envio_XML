@@ -44,27 +44,27 @@ def iniciar_janela(version, repo):
         mes_str = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro",
                "Novembro", "Dezembro"]
 
-        caminho = metodos.copiar_xmls(metodos.dados.atualizar_dados('caminho'), destino_dir,
-                                                        metodos.dados.atualizar_dados('cliente'), mes_desejado, ano_desejado)
+        caminho = metodos.copiar_xmls(metodos.dados.ler_dados('caminho'), destino_dir,
+                                                        metodos.dados.ler_dados('cliente'), mes_desejado, ano_desejado)
 
         if caminho != "":
             if checkbox_relatorio.get():
                 xmlreadnota.ler_dados_notas(caminho, metodos.dados)
             destino_zip = metodos.iniciar_compactacao(caminho, destino_dir, mes_desejado, ano_desejado)
             if modo_envio_cb["values"][0] == "Telegram":
-                if metodos.dados.atualizar_dados('telegrambot') == "":
+                if metodos.dados.ler_dados('telegrambot') == "":
                     token, chat_id = telegrambot.janela_telegram()
-                    metodos.dados.config["database"]["telegrambot"] = token
-                    metodos.dados.config["database"]["chat_id"] = chat_id
+                    metodos.dados.gravar_dados("telegrambot", token)
+                    metodos.dados.gravar_dados("chat_id", chat_id)
                 else:
                     print("Arquivo")
                     # reativar ao finalizar o funcionamento
                     #telegrambot.enviar_arquivo(metodos.dados.atualizar_dados('telegrambot'), metodos.dados.atualizar_dados('chat_id'), destino_zip)
             #metodos.enviar_email()
         else:
-            print("Mensagem")
-            #telegrambot.enviar_mensagem(metodos.dados.atualizar_dados('telegrambot'), metodos.dados.atualizar_dados('chat_id'),
-            #                            f"{ano_desejado} - {mes_str[mes_desejado - 1]} - {metodos.dados.atualizar_dados('cliente')}\nNenhum XML gerado")
+            if modo_envio_cb["values"][0] == "Telegram":
+                print("Mensagem")
+                #telegrambot.enviar_mensagem(metodos.dados.atualizar_dados('telegrambot'), metodos.dados.atualizar_dados('chat_id'),f"{ano_desejado} - {mes_str[mes_desejado - 1]} - {metodos.dados.atualizar_dados('cliente')}\nNenhum XML gerado")
 
     root = tk.Tk()
     title = "Envio XML"
@@ -91,8 +91,8 @@ def iniciar_janela(version, repo):
         else:
             print("Sistema não suportado")
     def reset_telegram():
-        metodos.dados.config["database"]["telegrambot"] = ""
-        metodos.dados.config["database"]["chat_id"] = ""
+        metodos.dados.gravar_dados("telegrambot", "")
+        metodos.dados.gravar_dados("chat_id", "")
         messagebox.showinfo("Completo", "Dados apagados com sucesso!")
 
     # Menu Config
@@ -112,7 +112,7 @@ def iniciar_janela(version, repo):
     barra_menu.add_cascade(label="Ajuda", menu=menu_ajuda)
 
     # Menu Sair
-    barra_menu.add_command(label="Sair", command=root.destroy)
+    barra_menu.add_command(label="Sair", command=esconder_janela)
     ### Fim da barra de menu
 
     # Variaveis
@@ -153,7 +153,7 @@ def iniciar_janela(version, repo):
     label_caminho = ttk.Label(root, text="Caminho do sistema:")
     label_caminho.grid(row=linha, column=0, padx=(10, 0), pady=(5, 8), sticky="w")
 
-    button_selecionar_origem = ttk.Button(root, text="Selecionar pasta de XMLs", command=lambda: (entrada_caminho.delete(0, "end"),
+    button_selecionar_origem = ttk.Button(root, text="Selecionar pasta do sistema de notas", command=lambda: (entrada_caminho.delete(0, "end"),
                                                                                   entrada_caminho.insert(0,
                                                                                                         metodos.selecionar_pasta())))
     button_selecionar_origem.grid(row=linha, column=1, columnspan=3, padx=10, pady=(0, 8), sticky="we")
@@ -177,7 +177,7 @@ def iniciar_janela(version, repo):
     linha += 1
 
     checkbox_relatorio = tk.BooleanVar()
-    checkbox_relatorio.set(metodos.dados.relatorio)
+    checkbox_relatorio.set(metodos.dados.ler_dados('relatorio'))
     checkbox = ttk.Checkbutton(root, text="Gerar relatório:", variable=checkbox_relatorio)
     checkbox.grid(row=linha, column=0, padx=10, pady=(0, 8), sticky="w")
 
@@ -197,15 +197,15 @@ def iniciar_janela(version, repo):
     # Inicialização
     def carregar_dados():
         entrada_cliente.delete(0, tk.END)
-        entrada_cliente.insert(0, metodos.dados.cliente)
+        entrada_cliente.insert(0, metodos.dados.ler_dados('cliente'))
         entrada_email.delete(0, tk.END)
-        entrada_email.insert(0, metodos.dados.email)
+        entrada_email.insert(0, metodos.dados.ler_dados('email'))
         entrada_senha.delete(0, tk.END)
-        entrada_senha.insert(0, metodos.dados.senha)
+        entrada_senha.insert(0, metodos.dados.ler_dados('senha'))
         entrada_caminho.delete(0, tk.END)
-        entrada_caminho.insert(0, metodos.dados.caminho)
+        entrada_caminho.insert(0, metodos.dados.ler_dados('caminho'))
         text_area.delete("1.0", tk.END)
-        text_area.insert("1.0", "\n".join(metodos.dados.emails))
+        text_area.insert("1.0", "\n".join(metodos.dados.ler_dados('emailsparaenvio')))
 
     carregar_dados()
 
@@ -232,5 +232,11 @@ def iniciar_janela(version, repo):
 
     ## Colocar if para verificar o dia de execução
     preparar_xmls(int(mes), int(ano))
+
+    ### Desenvolvimento
+    entrada_email.config(state="disabled")
+    entrada_senha.config(state="disabled")
+    text_area.config(state="disabled")
+
     root.mainloop()
     ### FIM da janela

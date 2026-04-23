@@ -82,9 +82,9 @@ def compactar(origem, destino_zip, mes_desejado, ano_desejado, out):
         if pasta_origem.is_dir() or pasta_origem.is_file():
             if not destino_zip == "":
                 if system == 'Linux':
-                    destino_zip = f"{destino_zip}/{ano_desejado}_{mes[mes_desejado - 1]}_{dados.atualizar_dados('cliente')}.zip"
+                    destino_zip = f"{destino_zip}/{ano_desejado}_{mes[mes_desejado - 1]}_{dados.ler_dados('cliente')}.zip"
                 elif system == 'Windows':
-                    destino_zip = f"{destino_zip}\\{ano_desejado}_{mes[mes_desejado - 1]}_{dados.atualizar_dados('cliente')}.zip"
+                    destino_zip = f"{destino_zip}\\{ano_desejado}_{mes[mes_desejado - 1]}_{dados.ler_dados('cliente')}.zip"
                 # Cria o arquivo ZIP no destino
 
                 with zipfile.ZipFile(destino_zip, 'w', zipfile.ZIP_DEFLATED) as zipf:
@@ -122,9 +122,9 @@ def compactar(origem, destino_zip, mes_desejado, ano_desejado, out):
 def enviar_email():
     agora = datetime.now()
     dia = agora.strftime("%d")
-    dia_registro = float(dados.dia)
+    dia_registro = float(dados.ler_dados('dia'))
 
-    if (float(dia) <= dia_registro) and (dados.executado == False):
+    if (float(dia) <= dia_registro) and (dados.ler_dados('executado') == False):
         print("Dia da semana")
 
     #hora = agora.strftime("%H")
@@ -156,18 +156,12 @@ def iniciar_compactacao(origem,
     return resultado["arquivo"]
 
 def gravar_dados(cliente, email, senha, pasta, emails):
-    dados.config["database"]["cliente"] = cliente
-    dados.config["database"]["email"] = email
+    dados.gravar_dados("cliente", cliente)
+    dados.gravar_dados("email", email)
 
-    dados.config["database"]["senhaemail"] = dados.crypto.cripto_senha(dados.open_key(),senha)
-    dados.config["database"]["caminhopasta"] = pasta
-    emails_separate = emails.split("\n")
-    dados.config["database"]["emailsparaenvio"].clear()
-    for separate in emails_separate:
-        if separate != "":
-            dados.config["database"]["emailsparaenvio"].append(separate)
-
-    dados.gravar()
+    dados.gravar_dados("senhaemail", dados.crypto.cripto_senha(dados.open_key(),senha))
+    dados.gravar_dados("caminhopasta", pasta)
+    dados.gravar_dados("emailsparaenvio", emails)
     messagebox.showinfo("Completo", "Dados gravados com sucesso!")
 
 dados.gerar_chave()

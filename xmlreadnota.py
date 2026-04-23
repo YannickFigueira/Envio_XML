@@ -1,17 +1,16 @@
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as Et
 import glob
 import relatorio
 
 def ler_dados_notas(caminho, dados):
     soma_valores = 0
-    soma_valores_nota = 0
 
     # Namespace da NF-e
     ns = {"nfe": "http://www.portalfiscal.inf.br/nfe"}
-    # Variaveis globais
+    # Variáveis globais
     modelo = 0
 
-    # Variaveis DANFE
+    # Variáveis DANFE
     index_danfe = 0
     nota_danfe = ""
     serie = ""
@@ -25,7 +24,7 @@ def ler_dados_notas(caminho, dados):
     soma_desc_danfe = 0
     soma_total_danfe = 0
 
-    # Variaveis NFCE
+    # Variáveis NFCE
     index_nfce = 0
     estabelecimento = ""
     data_nota = ""
@@ -40,7 +39,7 @@ def ler_dados_notas(caminho, dados):
     conta_nota = 0
     valor_qtd = ""
     for arquivo in glob.glob(caminho + "/notas/*.xml"):
-        tree = ET.parse(arquivo)
+        tree = Et.parse(arquivo)
         root = tree.getroot()
 
         # Procurar a tag vNF dentro do namespace
