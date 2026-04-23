@@ -57,7 +57,7 @@ def iniciar_janela(version, repo):
             if checkbox_relatorio.get():
                 xmlreadnota.ler_dados_notas(caminho, metodos.dados)
             destino_zip = metodos.iniciar_compactacao(caminho, destino_dir, mes_desejado, ano_desejado)
-            if metodos.dados.ler_dados('telegrambot') == "Telegram":
+            if metodos.dados.ler_dados('modoenvio') == "Telegram":
                 metodos.log_mensagem("Arquivo")
                 # reativar ao finalizar o funcionamento
                 metodos.telegrambot.enviar_arquivo(metodos.dados.ler_dados('telegrambot'), metodos.dados.ler_dados('chat_id'), destino_zip)

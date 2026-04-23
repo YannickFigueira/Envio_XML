@@ -112,7 +112,7 @@ def ler_dados(dados):
     emails = config["database"]["emailsparaenvio"]
     relatorio_str = config["database"]["relatorio"]
     relatorio = relatorio_str.strip().lower() == "true"
-    modoenvio = config["database"]["chat_id"]
+    modoenvio = config["database"]["modoenvio"]
     telegrambot = config["database"]["telegrambot"]
     chat_id = config["database"]["chat_id"]
 
