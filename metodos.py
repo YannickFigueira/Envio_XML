@@ -51,6 +51,7 @@ def copiar_xmls(origem, destino_dir, cliente, mes_desejado, ano_desejado):
     #mes_desejado = 4
     #ano_desejado = 2026
 
+    qtd_arquivos = False
     for arquivo in os.listdir(origem):
         caminho_arquivo = os.path.join(origem, arquivo)
 
@@ -61,9 +62,16 @@ def copiar_xmls(origem, destino_dir, cliente, mes_desejado, ano_desejado):
 
             # Verificar se o arquivo pertence ao mês/ano desejado
             if data_modificacao.month == mes_desejado and data_modificacao.year == ano_desejado:
+                print(f"{arquivo} - copiando arquivo...")
+                qtd_arquivos = True
                 shutil.copy2(caminho_arquivo, destino_dir)
                 #print(f"Arquivo {arquivo} copiado (criado em {data_modificacao})")
-    return destino_compactar
+
+    if qtd_arquivos:
+        return destino_compactar
+    else:
+        shutil.rmtree(destino_compactar)
+        return ""
 
 resultado = {}
 def compactar(origem, destino_zip, mes_desejado, ano_desejado, out):

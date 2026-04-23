@@ -3,6 +3,7 @@ import sys
 import threading
 import tkinter as tk
 from tkinter import ttk, messagebox
+from datetime import datetime
 
 import telegrambot
 import metodos, verificarversao, xmlreadnota
@@ -25,30 +26,45 @@ def iniciar_janela(version, repo):
         root.withdraw()
 
     def restaurar_janela():
-        print("Reiniciando janela")
         root.deiconify()
 
-    def fechar_programa(icon, item):
+    def fechar_programa(icon):
         root.destroy()
         icon.stop()
         sys.exit()
 
     def preparar_xmls(mes_desejado, ano_desejado):
+
+        if mes_desejado == 1:
+            mes_desejado = 12
+            ano_desejado -= 1
+        else:
+            mes_desejado -= 1
+
+        mes_str = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro",
+               "Novembro", "Dezembro"]
+
         caminho = metodos.copiar_xmls(metodos.dados.atualizar_dados('caminho'), destino_dir,
                                                         metodos.dados.atualizar_dados('cliente'), mes_desejado, ano_desejado)
-        if checkbox_relatorio.get():
-            xmlreadnota.ler_dados_notas(caminho, metodos.dados)
-        destino_zip = metodos.iniciar_compactacao(caminho, destino_dir, mes_desejado, ano_desejado)
-        if modo_envio_cb["values"][0] == "Telegram":
-            if metodos.dados.atualizar_dados('telegrambot') == "":
-                token, chat_id = telegrambot.janela_telegram()
-                metodos.dados.config["database"]["telegrambot"] = token
-                metodos.dados.config["database"]["chat_id"] = chat_id
-            else:
-                print(metodos.dados.atualizar_dados('telegrambot'))
-                # reativar ao finalizar o funcionamento
-                #telegrambot.enviar_arquivo(metodos.dados.atualizar_dados('telegrambot'), metodos.dados.atualizar_dados('chat_id'), destino_zip)
-        #metodos.enviar_email()
+
+        if caminho != "":
+            if checkbox_relatorio.get():
+                xmlreadnota.ler_dados_notas(caminho, metodos.dados)
+            destino_zip = metodos.iniciar_compactacao(caminho, destino_dir, mes_desejado, ano_desejado)
+            if modo_envio_cb["values"][0] == "Telegram":
+                if metodos.dados.atualizar_dados('telegrambot') == "":
+                    token, chat_id = telegrambot.janela_telegram()
+                    metodos.dados.config["database"]["telegrambot"] = token
+                    metodos.dados.config["database"]["chat_id"] = chat_id
+                else:
+                    print("Arquivo")
+                    # reativar ao finalizar o funcionamento
+                    #telegrambot.enviar_arquivo(metodos.dados.atualizar_dados('telegrambot'), metodos.dados.atualizar_dados('chat_id'), destino_zip)
+            #metodos.enviar_email()
+        else:
+            print("Mensagem")
+            #telegrambot.enviar_mensagem(metodos.dados.atualizar_dados('telegrambot'), metodos.dados.atualizar_dados('chat_id'),
+            #                            f"{ano_desejado} - {mes_str[mes_desejado - 1]} - {metodos.dados.atualizar_dados('cliente')}\nNenhum XML gerado")
 
     root = tk.Tk()
     title = "Envio XML"
@@ -170,9 +186,11 @@ def iniciar_janela(version, repo):
     text_area.grid(row=linha, column=0, columnspan=4, padx=10, pady=(0, 8), sticky="we")
     linha += 1
 
-    button_gravar = ttk.Button(root, text="Gravar", command = lambda: (metodos.gravar_dados(entrada_cliente.get(), entrada_email.get(), entrada_senha.get(), entrada_caminho.get(), text_area.get("1.0", tk.END)),
-                                                                       preparar_xmls(10, 2022)
-    ))
+    button_gravar = ttk.Button(root, text="Gravar", command = lambda: (metodos.gravar_dados(entrada_cliente.get(),
+                                                                                            entrada_email.get(),
+                                                                                            entrada_senha.get(),
+                                                                                            entrada_caminho.get(),
+                                                                                            text_area.get("1.0", tk.END))    ))
     button_gravar.grid(row=linha, column=0, columnspan=4, padx=10, pady=(0, 8), sticky="we")
     linha += 1
 
@@ -208,5 +226,11 @@ def iniciar_janela(version, repo):
 
     threading.Thread(target=run_icon, daemon=True).start()
 
+    agora = datetime.now()
+    mes = agora.strftime("%m")
+    ano = agora.strftime("%Y")
+
+    ## Colocar if para verificar o dia de execução
+    preparar_xmls(int(mes), int(ano))
     root.mainloop()
     ### FIM da janela

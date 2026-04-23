@@ -39,7 +39,6 @@ def janela_telegram():
     return token, chat_id
 
 def enviar_arquivo(token, chat_id, caminho):
-    print(caminho)
 
     # Token do seu bot (fornecido pelo BotFather)
     TOKEN = token
@@ -58,4 +57,10 @@ def enviar_arquivo(token, chat_id, caminho):
 
     asyncio.run(enviar_arquivo())
 
-    print("Arquivo enviado com sucesso!")
+def enviar_mensagem(token, chat_id, mensagem):
+    # Criar instância do bot
+    async def enviar_texto():
+        bot = Bot(token=token)
+        await bot.send_message(chat_id=chat_id, text=mensagem)
+
+    asyncio.run(enviar_texto())

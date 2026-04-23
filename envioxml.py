@@ -9,4 +9,3 @@ parser.add_argument("-v","--version",action="version", version=f"%(prog)s {VERSI
 args = parser.parse_args()
 
 janelaconfig.iniciar_janela(VERSION, repo)
-#janelaconfig.inciar_tray(VERSION, repo)
