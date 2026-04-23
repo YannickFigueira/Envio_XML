@@ -1,5 +1,6 @@
 import subprocess
 import sys
+import threading
 import tkinter as tk
 from tkinter import ttk, messagebox
 
@@ -9,8 +10,6 @@ import platform, os
 
 from pystray import Icon, MenuItem, Menu
 from PIL import Image
-
-
 
 if platform.system() == "Windows":
     destino_dir = "C:\\temp\\XMLs"
@@ -22,6 +21,35 @@ elif platform.system() == "Linux":
         os.makedirs(destino_dir)
 
 def iniciar_janela(version, repo):
+    def esconder_janela():
+        root.withdraw()
+
+    def restaurar_janela():
+        print("Reiniciando janela")
+        root.deiconify()
+
+    def fechar_programa(icon, item):
+        root.destroy()
+        icon.stop()
+        sys.exit()
+
+    def preparar_xmls(mes_desejado, ano_desejado):
+        caminho = metodos.copiar_xmls(metodos.dados.atualizar_dados('caminho'), destino_dir,
+                                                        metodos.dados.atualizar_dados('cliente'), mes_desejado, ano_desejado)
+        if checkbox_relatorio.get():
+            xmlreadnota.ler_dados_notas(caminho, metodos.dados)
+        destino_zip = metodos.iniciar_compactacao(caminho, destino_dir, mes_desejado, ano_desejado)
+        if modo_envio_cb["values"][0] == "Telegram":
+            if metodos.dados.atualizar_dados('telegrambot') == "":
+                token, chat_id = telegrambot.janela_telegram()
+                metodos.dados.config["database"]["telegrambot"] = token
+                metodos.dados.config["database"]["chat_id"] = chat_id
+            else:
+                print(metodos.dados.atualizar_dados('telegrambot'))
+                # reativar ao finalizar o funcionamento
+                #telegrambot.enviar_arquivo(metodos.dados.atualizar_dados('telegrambot'), metodos.dados.atualizar_dados('chat_id'), destino_zip)
+        #metodos.enviar_email()
+
     root = tk.Tk()
     title = "Envio XML"
     # Criar barra de menu
@@ -75,18 +103,16 @@ def iniciar_janela(version, repo):
     largura_entradas = 25
     linha = 0
 
-    def esconder_janela():
-        root.withdraw()  # apenas esconde a janela
-
     root.title(f"{title} {version}")
-    if platform.system() == "Windows":
+    """if platform.system() == "Windows":
         root.iconbitmap("imagens/xml.ico")
     elif platform.system() == "Linux":
         icon = tk.PhotoImage(file="imagens/xml.png")
-        root.iconphoto(True, icon)
+        root.iconphoto(True, icon)"""
     root.resizable(False, False)
     # Redefine o comportamento do botão de fechar
-    #root.protocol("WM_DELETE_WINDOW", esconder_janela)
+    root.protocol("WM_DELETE_WINDOW", esconder_janela)
+    root.withdraw()
 
     label_cliente = ttk.Label(root, text="Cliente:")
     label_cliente.grid(row=linha, column=0, padx=(10, 0), pady=(5, 8), sticky="w")
@@ -164,40 +190,23 @@ def iniciar_janela(version, repo):
         text_area.insert("1.0", "\n".join(metodos.dados.emails))
 
     carregar_dados()
-    def preparar_xmls(mes_desejado, ano_desejado):
-        caminho = metodos.copiar_xmls(metodos.dados.atualizar_dados('caminho'), destino_dir,
-                                                        metodos.dados.atualizar_dados('cliente'), mes_desejado, ano_desejado)
-        if checkbox_relatorio.get():
-            xmlreadnota.ler_dados_notas(caminho, metodos.dados)
-        destino_zip = metodos.iniciar_compactacao(caminho, destino_dir, mes_desejado, ano_desejado)
-        if modo_envio_cb["values"][0] == "Telegram":
-            if metodos.dados.atualizar_dados('telegrambot') == "":
-                token, chat_id = telegrambot.janela_telegram()
-                metodos.dados.config["database"]["telegrambot"] = token
-                metodos.dados.config["database"]["chat_id"] = chat_id
-            else:
-                print(metodos.dados.atualizar_dados('telegrambot'))
-                # reativar ao finalizar o funcionamento
-                #telegrambot.enviar_arquivo(metodos.dados.atualizar_dados('telegrambot'), metodos.dados.atualizar_dados('chat_id'), destino_zip)
-        #metodos.enviar_email()
-
-    root.mainloop()
-
-def fechar_programa(icon, item):
-    icon.stop()
-    sys.exit()
-
-def inciar_tray(version, repo):
 
     # Carregar ícone (use um PNG)
     image = Image.open("imagens/xml.png")
 
     # Criar menu da bandeja
     menu = Menu(
-        MenuItem("Configurações", lambda icon, item: iniciar_janela(version, repo)),
+        MenuItem("Configurações", restaurar_janela),
         MenuItem("Fechar", fechar_programa)
     )
 
     # Criar ícone na bandeja
-    icon = Icon("EnvioXML", image, "Envio XML", menu)
-    icon.run()
+    icon_tray = Icon("EnvioXML", image, "Envio XML", menu)
+
+    def run_icon():
+        icon_tray.run()
+
+    threading.Thread(target=run_icon, daemon=True).start()
+
+    root.mainloop()
+    ### FIM da janela
