@@ -15,14 +15,14 @@ def janela_telegram():
     label_token.grid(row=linha, column=0, padx=(10, 0), pady=(5, 8), sticky="w")
 
     entrada_token = ttk.Entry(root, width=50)
-    entrada_token.grid(row=linha, column=1, padx=(10, 0), pady=(5, 8), sticky="we")
+    entrada_token.grid(row=linha, column=1, padx=10, pady=(5, 8), sticky="we")
     linha += 1
 
     label_chat_id = ttk.Label(root, text="Chat ID:")
     label_chat_id.grid(row=linha, column=0, padx=(10, 0), pady=(5, 8), sticky="w")
 
     entrada_chat_id = ttk.Entry(root, width=50)
-    entrada_chat_id.grid(row=linha, column=1, padx=(10, 0), pady=(5, 8), sticky="we")
+    entrada_chat_id.grid(row=linha, column=1, padx=10, pady=(5, 8), sticky="we")
     linha += 1
 
     button_update = ttk.Button(root, text="Confirmar dados",

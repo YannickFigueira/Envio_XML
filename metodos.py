@@ -10,7 +10,8 @@ import logging
 from datetime import datetime
 
 import telegrambot
-
+# Pasta padrão dos sistemas de notas
+smallsoft = "C:\\Program Files (x86)\\SmallSoft\\Small Commerce"
 
 def log_mensagem(msg):
     frame = inspect.currentframe().f_back
@@ -146,6 +147,19 @@ def selecionar_pasta():
     else:
         return None
 
+def verificar_sistema(sistema_emissor):
+    if sistema_emissor == "SmallSoft":
+        log_mensagem("sistema_emissor")
+        resposta = messagebox.askyesno("Escolha", f"Sistema selecionado {sistema_emissor}\nQuer usar a pasta padrão")
+        caminho = smallsoft
+
+        if resposta:
+            return caminho
+        else:
+            return selecionar_pasta()
+    else:
+        return selecionar_pasta()
+
 # --- Inicia a compactação --- #
 def iniciar_compactacao(origem,
                         destino_zip,
@@ -165,7 +179,7 @@ def iniciar_compactacao(origem,
 
 dados.gerar_chave()
 
-def gravar_dados(cliente, email, senha, pasta, emails):
+def gravar_dados(cliente, email, senha, pasta, emails, modoenvio, sistema_emissor):
     caminho = Path(pasta)
     if caminho.exists() and pasta != "":
         dados.gravar_dados("cliente", cliente)
@@ -174,6 +188,8 @@ def gravar_dados(cliente, email, senha, pasta, emails):
         dados.gravar_dados("senhaemail", dados.crypto.cripto_senha(dados.open_key(), senha))
         dados.gravar_dados("caminhopasta", pasta)
         dados.gravar_dados("emailsparaenvio", emails)
+        dados.gravar_dados("modoenvio", modoenvio)
+        dados.gravar_dados("sistema_emissor", sistema_emissor)
         if dados.ler_dados('telegrambot') == "":
             token, chat_id = telegrambot.janela_telegram()
             dados.gravar_dados("telegrambot", token)

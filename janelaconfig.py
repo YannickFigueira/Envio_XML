@@ -12,6 +12,7 @@ from pystray import Icon, MenuItem, Menu
 from PIL import Image
 
 agora = datetime.now()
+dia = agora.strftime("%d")
 mes = agora.strftime("%m")
 ano = agora.strftime("%Y")
 
@@ -25,6 +26,8 @@ elif platform.system() == "Linux":
         os.makedirs(destino_dir)
 
 def iniciar_janela(version, repo):
+    if int(dia) > 7:
+        metodos.dados.gravar_dados("executado", "False")
 
     ### Configuração da janela
     def esconder_janela():
@@ -66,6 +69,8 @@ def iniciar_janela(version, repo):
             if modo_envio_cb["values"][0] == "Telegram":
                 metodos.log_mensagem("Mensagem janelaconfig")
                 metodos.telegrambot.enviar_mensagem(metodos.dados.ler_dados('telegrambot'), metodos.dados.ler_dados('chat_id'),f"{ano_desejado} - {mes_str[mes_desejado - 1]} - {metodos.dados.ler_dados('cliente')}\nNenhum XML gerado")
+
+        metodos.dados.gravar_dados("executado", "True")
 
     def executar_acao(resposta):
         if resposta:
@@ -110,18 +115,18 @@ def iniciar_janela(version, repo):
         label_ano = ttk.Label(alterar, text="Ano da nota:")
         label_ano.grid(row=linha, column=0, padx=(10, 0), pady=(5, 8), sticky="w")
 
-        ent_ano = ttk.Entry(alterar, width=50)
-        ent_ano.grid(row=linha, column=1, padx=(10, 0), pady=(5, 8), sticky="we")
+        ent_ano = ttk.Entry(alterar, width=25)
+        ent_ano.grid(row=linha, column=1, padx=10, pady=(5, 8), sticky="we")
         linha += 1
 
         lbl_mes = ttk.Label(alterar, text="mês da nota:")
         lbl_mes.grid(row=linha, column=0, padx=(10, 0), pady=(5, 8), sticky="w")
 
-        ent_mes = ttk.Entry(alterar, width=50)
-        ent_mes.grid(row=linha, column=1, padx=(10, 0), pady=(5, 8), sticky="we")
+        ent_mes = ttk.Entry(alterar, width=25)
+        ent_mes.grid(row=linha, column=1, padx=10, pady=(5, 8), sticky="we")
         linha += 1
 
-        btn_executar = ttk.Button(alterar, text="Confirmar dados",
+        btn_executar = ttk.Button(alterar, text="Reenviar notas",
                                    command=lambda: (preparar_xmls(int(ent_mes.get()) + 1, int(ent_ano.get())), alterar.quit()))
         btn_executar.grid(row=linha, column=0, columnspan=4, padx=10, pady=(5, 8), sticky="we")
 
@@ -131,7 +136,7 @@ def iniciar_janela(version, repo):
 
     # Menu Config
     menu_config = tk.Menu(barra_menu, tearoff=0)
-    menu_config.add_command(label="Liberar teste", command=alterar_dados)
+    menu_config.add_command(label="Reenviar notas", command=alterar_dados)
     menu_config.add_command(label="Resetar dados Telegram",
                             command=lambda: reset_telegram())
     barra_menu.add_cascade(label="Configuração", menu=menu_config)
@@ -150,7 +155,7 @@ def iniciar_janela(version, repo):
     barra_menu.add_command(label="Sair", command=esconder_janela)
     ### Fim da barra de menu
 
-    # Variaveis
+    # Variáveis
     largura_entradas = 25
     linha = 0
 
@@ -190,7 +195,7 @@ def iniciar_janela(version, repo):
 
     button_selecionar_origem = ttk.Button(root, text="Selecionar pasta do sistema de notas", command=lambda: (entrada_caminho.delete(0, "end"),
                                                                                   entrada_caminho.insert(0,
-                                                                                                        metodos.selecionar_pasta())))
+                                                                                                        metodos.verificar_sistema(sistema_cb.get()))))
     button_selecionar_origem.grid(row=linha, column=1, columnspan=3, padx=10, pady=(0, 8), sticky="we")
     linha += 1
 
@@ -198,10 +203,10 @@ def iniciar_janela(version, repo):
     entrada_caminho.grid(row=linha, column=0, columnspan=4, padx=10, pady=(5, 8), sticky="we")
     linha += 1
 
-    ttk.Label(root, text="Sistema:").grid(row=linha, column=0, padx=5, pady=5, sticky="w")
+    ttk.Label(root, text="Sistema emissor:").grid(row=linha, column=0, padx=5, pady=5, sticky="w")
     sistema_cb = ttk.Combobox(root, width=15, takefocus=False, state="readonly")
     sistema_cb.grid(row=linha, column=1, padx=10, pady=5, sticky="ew")
-    sistema_cb["values"] = ["SmallSoft"]
+    sistema_cb["values"] = ["SmallSoft", "Outro"]
     sistema_cb.current(0)
 
     ttk.Label(root, text="Modo de envio:").grid(row=linha, column=2, padx=5, pady=5, sticky="w")
@@ -224,7 +229,9 @@ def iniciar_janela(version, repo):
                                                                                             entrada_email.get().replace(" ", ""),
                                                                                             entrada_senha.get().replace(" ", ""),
                                                                                             entrada_caminho.get().replace(" ", ""),
-                                                                                            text_area.get("1.0", tk.END))    )))
+                                                                                            text_area.get("1.0", tk.END),
+                                                                                                          modo_envio_cb.get(),
+                                                                                                          sistema_cb.get())    )))
     button_gravar.grid(row=linha, column=0, columnspan=4, padx=10, pady=(0, 8), sticky="we")
     linha += 1
 
@@ -262,7 +269,8 @@ def iniciar_janela(version, repo):
 
     ## Colocar if para verificar o dia de execução
     if not metodos.dados.ler_dados('caminho') == "":
-        preparar_xmls(int(mes), int(ano))
+        if not metodos.dados.ler_dados('executado') and int(dia) <= metodos.dados.ler_dados('dia'):
+            preparar_xmls(int(mes), int(ano))
     else:
         root.deiconify()
 
