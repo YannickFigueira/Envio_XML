@@ -183,11 +183,11 @@ def iniciar_janela(version, repo):
     linha = 0
 
     root.title(f"{title} {version}")
-    """if platform.system() == "Windows":
+    if platform.system() == "Windows":
         root.iconbitmap("imagens/xml.ico")
     elif platform.system() == "Linux":
         icon = tk.PhotoImage(file="imagens/xml.png")
-        root.iconphoto(True, icon)"""
+        root.iconphoto(True, icon)
     root.resizable(False, False)
     # Redefine o comportamento do botão de fechar
     root.protocol("WM_DELETE_WINDOW", esconder_janela)
