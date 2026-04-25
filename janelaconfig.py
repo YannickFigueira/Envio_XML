@@ -17,6 +17,9 @@ dia = agora.strftime("%d")
 mes = agora.strftime("%m")
 ano = agora.strftime("%Y")
 
+pad_x = 10
+pad_y = 5
+
 if platform.system() == "Windows":
     destino_dir = "C:\\temp\\XMLs"
     if not os.path.exists(destino_dir):
@@ -81,14 +84,12 @@ def iniciar_janela(version, repo):
 
             destino_zip = metodos.iniciar_compactacao(caminho, destino_dir, mes_desejado, ano_desejado)
             if metodos.dados.ler_dados('modoenvio') == "Telegram":
-                metodos.log_mensagem("Arquivo")
                 # reativar ao finalizar o funcionamento
-                #metodos.telegrambot.enviar_arquivo(metodos.dados.ler_dados('telegrambot'), metodos.dados.ler_dados('chat_id'), destino_zip)
+                metodos.telegrambot.enviar_arquivo(metodos.dados.ler_dados('telegrambot'), metodos.dados.ler_dados('chat_id'), destino_zip)
                 #metodos.enviar_email()
         else:
             if modo_envio_cb["values"][0] == "Telegram":
-                metodos.log_mensagem("Mensagem janelaconfig")
-                #metodos.telegrambot.enviar_mensagem(metodos.dados.ler_dados('telegrambot'), metodos.dados.ler_dados('chat_id'),f"{ano_desejado} - {mes_str[mes_desejado - 1]} - {metodos.dados.ler_dados('cliente')}\nNenhum XML gerado")
+                metodos.telegrambot.enviar_mensagem(metodos.dados.ler_dados('telegrambot'), metodos.dados.ler_dados('chat_id'),f"{ano_desejado} - {mes_str[mes_desejado - 1]} - {metodos.dados.ler_dados('cliente')}\nNenhum XML gerado")
 
         metodos.dados.gravar_dados("executado", "True")
 
@@ -133,22 +134,22 @@ def iniciar_janela(version, repo):
         alterar.resizable(False, False)
 
         label_ano = ttk.Label(alterar, text="Ano da nota:")
-        label_ano.grid(row=linha, column=0, padx=(10, 0), pady=(5, 8), sticky="w")
+        label_ano.grid(row=linha, column=0, padx=pad_x, pady=pad_y, sticky="w")
 
         ent_ano = ttk.Entry(alterar, width=25)
-        ent_ano.grid(row=linha, column=1, padx=10, pady=(5, 8), sticky="we")
+        ent_ano.grid(row=linha, column=1, padx=pad_x, pady=pad_y, sticky="we")
         linha += 1
 
         lbl_mes = ttk.Label(alterar, text="mês da nota:")
-        lbl_mes.grid(row=linha, column=0, padx=(10, 0), pady=(5, 8), sticky="w")
+        lbl_mes.grid(row=linha, column=0, padx=pad_x, pady=pad_y, sticky="w")
 
         ent_mes = ttk.Entry(alterar, width=25)
-        ent_mes.grid(row=linha, column=1, padx=10, pady=(5, 8), sticky="we")
+        ent_mes.grid(row=linha, column=1, padx=pad_x, pady=pad_y, sticky="we")
         linha += 1
 
         btn_executar = ttk.Button(alterar, text="Reenviar notas",
                                    command=lambda: (preparar_xmls(int(ent_mes.get()) + 1, int(ent_ano.get())), alterar.quit()))
-        btn_executar.grid(row=linha, column=0, columnspan=4, padx=10, pady=(5, 8), sticky="we")
+        btn_executar.grid(row=linha, column=0, columnspan=4, padx=pad_x, pady=pad_y, sticky="we")
 
         alterar.mainloop()
 
@@ -191,60 +192,59 @@ def iniciar_janela(version, repo):
     root.withdraw()
 
     label_cliente = ttk.Label(root, text="Cliente:")
-    label_cliente.grid(row=linha, column=0, padx=(10, 0), pady=(5, 8), sticky="w")
+    label_cliente.grid(row=linha, column=0, padx=pad_x, pady=pad_y, sticky="w")
 
     entrada_cliente = ttk.Entry(root, width=largura_entradas)
-    entrada_cliente.grid(row=linha, column=1, padx=(10, 0), pady=(5, 8),sticky="w")
+    entrada_cliente.grid(row=linha, column=1, padx=pad_x, pady=pad_y,sticky="w")
     linha += 1
 
     label_email = ttk.Label(root, text="E-mail cliente:")
-    label_email.grid(row=linha, column=0, padx=(10, 0), pady=(5, 8), sticky="w")
+    label_email.grid(row=linha, column=0, padx=pad_x, pady=pad_y, sticky="w")
 
     entrada_email = ttk.Entry(root, width=largura_entradas)
-    entrada_email.grid(row=linha, column=1, padx=(10, 0), pady=(5, 8), sticky="w")
+    entrada_email.grid(row=linha, column=1, padx=pad_x, pady=pad_y, sticky="w")
 
     label_senha = ttk.Label(root, text="senha:")
-    label_senha.grid(row=linha, column=2, padx=(10, 0), pady=(5, 8), sticky="w")
+    label_senha.grid(row=linha, column=2, padx=pad_x, pady=pad_y, sticky="w")
 
     entrada_senha = ttk.Entry(root, width=15, show="*")
-    entrada_senha.grid(row=linha, column=3, padx=10, pady=(5, 8), sticky="we")
+    entrada_senha.grid(row=linha, column=3, padx=pad_x, pady=pad_y, sticky="we")
     linha += 1
 
-    ttk.Label(root, text="Sistema emissor:").grid(row=linha, column=0, padx=5, pady=5, sticky="w")
+    ttk.Label(root, text="Sistema emissor:").grid(row=linha, column=0, padx=pad_x, pady=pad_y, sticky="w")
     sistema_cb = ttk.Combobox(root, width=15, takefocus=False, state="readonly")
-    sistema_cb.grid(row=linha, column=1, padx=10, pady=5, sticky="ew")
+    sistema_cb.grid(row=linha, column=1, padx=pad_x, pady=pad_y, sticky="ew")
     sistema_cb["values"] = ["SmallSoft", "Outro"]
     sistema_cb.current(0)
 
-    ttk.Label(root, text="Modo de envio:").grid(row=linha, column=2, padx=5, pady=5, sticky="w")
+    ttk.Label(root, text="Modo de envio:").grid(row=linha, column=2, padx=pad_x, pady=pad_y, sticky="w")
     modo_envio_cb = ttk.Combobox(root, width=15, takefocus=False, state="readonly")
-    modo_envio_cb.grid(row=linha, column=3, padx=10, pady=5, sticky="ew")
+    modo_envio_cb.grid(row=linha, column=3, padx=pad_x, pady=pad_y, sticky="ew")
     modo_envio_cb["values"] = ["Telegram"]
     modo_envio_cb.current(0)
     linha += 1
 
     label_caminho = ttk.Label(root, text="Caminho do sistema:")
-    label_caminho.grid(row=linha, column=0, padx=(10, 0), pady=(5, 8), sticky="w")
+    label_caminho.grid(row=linha, column=0, padx=pad_x, pady=pad_y, sticky="w")
 
     button_selecionar_origem = ttk.Button(root, text="Selecionar pasta do sistema de notas", command=lambda: (entrada_caminho.delete(0, "end"),
-                                                                                  entrada_caminho.insert(0,
-                                                                                                        metodos.verificar_sistema(sistema_cb.get()))))
-    button_selecionar_origem.grid(row=linha, column=1, columnspan=3, padx=10, pady=(0, 8), sticky="we")
+                                                                                  entrada_caminho.insert(0, metodos.verificar_sistema(sistema_cb.get()))))
+    button_selecionar_origem.grid(row=linha, column=1, columnspan=3, padx=pad_x, pady=pad_y, sticky="we")
     linha += 1
 
     entrada_caminho = ttk.Entry(root)
-    entrada_caminho.grid(row=linha, column=0, columnspan=4, padx=10, pady=(5, 8), sticky="we")
+    entrada_caminho.grid(row=linha, column=0, columnspan=4, padx=pad_x, pady=pad_y, sticky="we")
     linha += 1
 
     checkbox_relatorio = tk.BooleanVar()
     checkbox_relatorio.set(metodos.dados.ler_dados('relatorio'))
     checkbox = ttk.Checkbutton(root, text="Gerar relatório:", variable=checkbox_relatorio)
-    checkbox.grid(row=linha, column=0, padx=10, pady=(0, 8), sticky="w")
+    checkbox.grid(row=linha, column=0, padx=pad_x, pady=pad_y, sticky="w")
     linha += 1
 
     # Área de texto
     text_area = tk.Text(root, width=50, height=5)
-    text_area.grid(row=linha, column=0, columnspan=4, padx=10, pady=(0, 8), sticky="we")
+    text_area.grid(row=linha, column=0, columnspan=4, padx=pad_x, pady=pad_y, sticky="we")
     linha += 1
     button_gravar = ttk.Button(root, text="Gravar", command = lambda: (executar_acao(metodos.gravar_dados(entrada_cliente.get().replace(" ", ""),
                                                                                             entrada_email.get().replace(" ", ""),
@@ -253,7 +253,7 @@ def iniciar_janela(version, repo):
                                                                                             text_area.get("1.0", tk.END),
                                                                                                           modo_envio_cb.get(),
                                                                                                           sistema_cb.get())    )))
-    button_gravar.grid(row=linha, column=0, columnspan=4, padx=10, pady=(0, 8), sticky="we")
+    button_gravar.grid(row=linha, column=0, columnspan=4, padx=pad_x, pady=pad_y, sticky="we")
     linha += 1
 
     # Inicialização

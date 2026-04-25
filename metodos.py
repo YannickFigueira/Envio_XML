@@ -76,7 +76,6 @@ def copiar_xmls(origem, destino_dir, cliente, mes_desejado, ano_desejado):
 
             # Verificar se o arquivo pertence ao mês/ano desejado
             if data_modificacao.month == mes_desejado and data_modificacao.year == ano_desejado:
-                log_mensagem(f"{arquivo} - copiando arquivo...")
                 qtd_arquivos = True
                 shutil.copy2(caminho_arquivo, destino_dir)
                 #print(f"Arquivo {arquivo} copiado (criado em {data_modificacao})")
@@ -150,11 +149,10 @@ def selecionar_pasta():
     if pasta:  # se o usuário não cancelar
         return pasta
     else:
-        return None
+        return ""
 
 def verificar_sistema(sistema_emissor):
     if sistema_emissor == "SmallSoft":
-        log_mensagem("sistema_emissor")
         resposta = messagebox.askyesno("Escolha", f"Sistema selecionado {sistema_emissor}\nQuer usar a pasta padrão")
         caminho = "C:\\Program Files (x86)\\SmallSoft\\Small Commerce"
 
