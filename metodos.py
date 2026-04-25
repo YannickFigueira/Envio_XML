@@ -1,5 +1,6 @@
 import inspect
 import os, shutil
+import platform
 import threading
 import zipfile
 import dados
@@ -11,7 +12,7 @@ from datetime import datetime
 
 import telegrambot
 # Pasta padrão dos sistemas de notas
-smallsoft = "C:\\Program Files (x86)\\SmallSoft\\Small Commerce"
+smallsoft = "C:\\Program Files (x86)\\SmallSoft\\Small Commerce\\xmldestinatario\\NFCE"
 
 def log_mensagem(msg):
     frame = inspect.currentframe().f_back
@@ -44,18 +45,22 @@ elif system == 'Windows':
     )
 def copiar_xmls(origem, destino_dir, cliente, mes_desejado, ano_desejado):
     destino_compactar = ""
+    if origem == smallsoft:
+        dir_nfce = f"\\nfce"
+    else:
+        dir_nfce = ""
     if system == "Windows":
         destino_compactar = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{cliente}"
-        destino_dir = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{cliente}\\notas"
+        destino_dir = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{cliente}\\notas{dir_nfce}"
         if not os.path.exists(destino_dir):
             os.makedirs(destino_dir)
-            os.makedirs(f"{destino_compactar}\\relatorio")
+            if not os.path.exists(f"{destino_compactar}\\relatorio"): os.makedirs(f"{destino_compactar}\\relatorio")
     elif system == "Linux":
         destino_compactar = f"{destino_dir}/{ano_desejado}_{mes_desejado}_{cliente}"
         destino_dir = f"{destino_dir}/{ano_desejado}_{mes_desejado}_{cliente}/notas"
         if not os.path.exists(destino_dir):
             os.makedirs(destino_dir)
-            os.makedirs(f"{destino_compactar}/relatorio")
+            if not os.path.exists(f"{destino_compactar}/relatorio"): os.makedirs(f"{destino_compactar}/relatorio")
     # Defina o mês e ano que deseja copiar (exemplo: março de 2024)
     #mes_desejado = 4
     #ano_desejado = 2026
@@ -151,7 +156,7 @@ def verificar_sistema(sistema_emissor):
     if sistema_emissor == "SmallSoft":
         log_mensagem("sistema_emissor")
         resposta = messagebox.askyesno("Escolha", f"Sistema selecionado {sistema_emissor}\nQuer usar a pasta padrão")
-        caminho = smallsoft
+        caminho = "C:\\Program Files (x86)\\SmallSoft\\Small Commerce"
 
         if resposta:
             return caminho
@@ -180,7 +185,14 @@ def iniciar_compactacao(origem,
 dados.gerar_chave()
 
 def gravar_dados(cliente, email, senha, pasta, emails, modoenvio, sistema_emissor):
-    caminho = Path(pasta)
+    entrada = ""
+    if platform.system() == "Windows":
+        entrada = str(pasta).replace(" ", "").replace("/", "\\")
+    elif platform.system() == "Linux":
+        entrada = str(pasta).replace(" ", "")
+    else:
+        log_mensagem("Sistema não suportado")
+    caminho = Path(entrada)
     if caminho.exists() and pasta != "":
         dados.gravar_dados("cliente", cliente)
         dados.gravar_dados("email", email)

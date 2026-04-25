@@ -4,7 +4,7 @@ import glob
 import metodos
 import relatorio
 
-def ler_dados_notas(caminho, dados):
+def ler_dados_notas(caminho, nfce, dados):
     soma_valores = 0
 
     # Namespace da NF-e
@@ -40,7 +40,7 @@ def ler_dados_notas(caminho, dados):
 
     conta_nota = 0
     valor_qtd = ""
-    for arquivo in glob.glob(caminho + "/notas/*.xml"):
+    for arquivo in glob.glob(caminho + f"/notas/{nfce}*.xml"):
         tree = Et.parse(arquivo)
         root = tree.getroot()
 

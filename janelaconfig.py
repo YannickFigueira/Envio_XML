@@ -4,8 +4,9 @@ import threading
 import tkinter as tk
 from tkinter import ttk, messagebox
 from datetime import datetime
+from pathlib import Path
 
-import metodos, verificarversao, xmlreadnota
+import metodos, verificarversao, xmlreadnota, transferarea
 import platform, os
 
 from pystray import Icon, MenuItem, Menu
@@ -42,6 +43,7 @@ def iniciar_janela(version, repo):
         sys.exit()
 
     def preparar_xmls(mes_desejado, ano_desejado):
+        smallsoft = "C:\\Program Files (x86)\\SmallSoft\\Small Commerce"
 
 
         if mes_desejado == 1:
@@ -53,22 +55,40 @@ def iniciar_janela(version, repo):
         mes_str = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro",
                "Novembro", "Dezembro"]
 
-        caminho = metodos.copiar_xmls(metodos.dados.ler_dados('caminho'), destino_dir,
-                                                        metodos.dados.ler_dados('cliente'), mes_desejado, ano_desejado)
+        caminho_danfe = f"{metodos.dados.ler_dados('caminho')}"
+        caminho_nfce = ""
+        if metodos.dados.ler_dados('sistema_emissor') == "SmallSoft":
+            caminho_danfe = f"{metodos.dados.ler_dados('caminho')}\\xmldestinatario"
+            caminho_nfce = f"{metodos.dados.ler_dados('caminho')}\\xmldestinatario\\NFCE"
 
+
+        # Nota DANFE
+        caminho = metodos.copiar_xmls(caminho_danfe, destino_dir,
+                                      metodos.dados.ler_dados('cliente'), mes_desejado, ano_desejado)
         if caminho != "":
             if checkbox_relatorio.get():
-                xmlreadnota.ler_dados_notas(caminho, metodos.dados)
+                xmlreadnota.ler_dados_notas(caminho, "", metodos.dados)
+
+        # Nota NFCE
+        path = Path(caminho_nfce)
+        if path.exists() and caminho_nfce != "":
+            metodos.copiar_xmls(caminho_nfce, destino_dir,
+                                      metodos.dados.ler_dados('cliente'), mes_desejado, ano_desejado)
+            if caminho != "":
+                if checkbox_relatorio.get():
+                    xmlreadnota.ler_dados_notas(f"{caminho}", "/NFCE/", metodos.dados)
+
+
             destino_zip = metodos.iniciar_compactacao(caminho, destino_dir, mes_desejado, ano_desejado)
             if metodos.dados.ler_dados('modoenvio') == "Telegram":
                 metodos.log_mensagem("Arquivo")
                 # reativar ao finalizar o funcionamento
-                metodos.telegrambot.enviar_arquivo(metodos.dados.ler_dados('telegrambot'), metodos.dados.ler_dados('chat_id'), destino_zip)
+                #metodos.telegrambot.enviar_arquivo(metodos.dados.ler_dados('telegrambot'), metodos.dados.ler_dados('chat_id'), destino_zip)
                 #metodos.enviar_email()
         else:
             if modo_envio_cb["values"][0] == "Telegram":
                 metodos.log_mensagem("Mensagem janelaconfig")
-                metodos.telegrambot.enviar_mensagem(metodos.dados.ler_dados('telegrambot'), metodos.dados.ler_dados('chat_id'),f"{ano_desejado} - {mes_str[mes_desejado - 1]} - {metodos.dados.ler_dados('cliente')}\nNenhum XML gerado")
+                #metodos.telegrambot.enviar_mensagem(metodos.dados.ler_dados('telegrambot'), metodos.dados.ler_dados('chat_id'),f"{ano_desejado} - {mes_str[mes_desejado - 1]} - {metodos.dados.ler_dados('cliente')}\nNenhum XML gerado")
 
         metodos.dados.gravar_dados("executado", "True")
 
@@ -190,19 +210,6 @@ def iniciar_janela(version, repo):
     entrada_senha.grid(row=linha, column=3, padx=10, pady=(5, 8), sticky="we")
     linha += 1
 
-    label_caminho = ttk.Label(root, text="Caminho do sistema:")
-    label_caminho.grid(row=linha, column=0, padx=(10, 0), pady=(5, 8), sticky="w")
-
-    button_selecionar_origem = ttk.Button(root, text="Selecionar pasta do sistema de notas", command=lambda: (entrada_caminho.delete(0, "end"),
-                                                                                  entrada_caminho.insert(0,
-                                                                                                        metodos.verificar_sistema(sistema_cb.get()))))
-    button_selecionar_origem.grid(row=linha, column=1, columnspan=3, padx=10, pady=(0, 8), sticky="we")
-    linha += 1
-
-    entrada_caminho = ttk.Entry(root)
-    entrada_caminho.grid(row=linha, column=0, columnspan=4, padx=10, pady=(5, 8), sticky="we")
-    linha += 1
-
     ttk.Label(root, text="Sistema emissor:").grid(row=linha, column=0, padx=5, pady=5, sticky="w")
     sistema_cb = ttk.Combobox(root, width=15, takefocus=False, state="readonly")
     sistema_cb.grid(row=linha, column=1, padx=10, pady=5, sticky="ew")
@@ -216,10 +223,24 @@ def iniciar_janela(version, repo):
     modo_envio_cb.current(0)
     linha += 1
 
+    label_caminho = ttk.Label(root, text="Caminho do sistema:")
+    label_caminho.grid(row=linha, column=0, padx=(10, 0), pady=(5, 8), sticky="w")
+
+    button_selecionar_origem = ttk.Button(root, text="Selecionar pasta do sistema de notas", command=lambda: (entrada_caminho.delete(0, "end"),
+                                                                                  entrada_caminho.insert(0,
+                                                                                                        metodos.verificar_sistema(sistema_cb.get()))))
+    button_selecionar_origem.grid(row=linha, column=1, columnspan=3, padx=10, pady=(0, 8), sticky="we")
+    linha += 1
+
+    entrada_caminho = ttk.Entry(root)
+    entrada_caminho.grid(row=linha, column=0, columnspan=4, padx=10, pady=(5, 8), sticky="we")
+    linha += 1
+
     checkbox_relatorio = tk.BooleanVar()
     checkbox_relatorio.set(metodos.dados.ler_dados('relatorio'))
     checkbox = ttk.Checkbutton(root, text="Gerar relatório:", variable=checkbox_relatorio)
     checkbox.grid(row=linha, column=0, padx=10, pady=(0, 8), sticky="w")
+    linha += 1
 
     # Área de texto
     text_area = tk.Text(root, width=50, height=5)
@@ -228,7 +249,7 @@ def iniciar_janela(version, repo):
     button_gravar = ttk.Button(root, text="Gravar", command = lambda: (executar_acao(metodos.gravar_dados(entrada_cliente.get().replace(" ", ""),
                                                                                             entrada_email.get().replace(" ", ""),
                                                                                             entrada_senha.get().replace(" ", ""),
-                                                                                            entrada_caminho.get().replace(" ", ""),
+                                                                                            entrada_caminho.get(),
                                                                                             text_area.get("1.0", tk.END),
                                                                                                           modo_envio_cb.get(),
                                                                                                           sistema_cb.get())    )))
@@ -278,6 +299,11 @@ def iniciar_janela(version, repo):
     entrada_email.config(state="disabled")
     entrada_senha.config(state="disabled")
     text_area.config(state="disabled")
+
+    transferarea.ClipboardMenu(root, entrada_caminho)
+    transferarea.ClipboardMenu(root, entrada_cliente)
+    transferarea.ClipboardMenu(root, entrada_email)
+    transferarea.ClipboardMenu(root, entrada_senha)
 
     root.mainloop()
     ### FIM da janela
