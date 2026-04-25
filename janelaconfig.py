@@ -5,12 +5,13 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from datetime import datetime
 from pathlib import Path
-
-import metodos, verificarversao, xmlreadnota, transferarea
 import platform, os
 
 from pystray import Icon, MenuItem, Menu
 from PIL import Image
+
+### Módulos próprios
+import metodos, verificarversao, xmlreadnota, transferarea
 
 agora = datetime.now()
 dia = agora.strftime("%d")
@@ -66,27 +67,27 @@ def iniciar_janela(version, repo):
 
 
         # Nota DANFE
-        caminho = metodos.copiar_xmls(caminho_danfe, destino_dir,
+        encontrado_notas = metodos.copiar_xmls(caminho_danfe, destino_dir,
                                       metodos.dados.ler_dados('cliente'), mes_desejado, ano_desejado)
-        if caminho != "":
+        if encontrado_notas:
             if checkbox_relatorio.get():
-                xmlreadnota.ler_dados_notas(caminho, "", metodos.dados)
+                xmlreadnota.ler_dados_notas(f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{metodos.dados.ler_dados('cliente')}", "", metodos.dados)
 
         # Nota NFCE
         path = Path(caminho_nfce)
         if path.exists() and caminho_nfce != "":
-            metodos.copiar_xmls(caminho_nfce, destino_dir,
+            encontrado_notas = metodos.copiar_xmls(caminho_nfce, destino_dir,
                                       metodos.dados.ler_dados('cliente'), mes_desejado, ano_desejado)
-            if caminho != "":
+            if encontrado_notas:
                 if checkbox_relatorio.get():
-                    xmlreadnota.ler_dados_notas(f"{caminho}", "/NFCE/", metodos.dados)
+                    xmlreadnota.ler_dados_notas(f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{metodos.dados.ler_dados('cliente')}", "/NFCE/", metodos.dados)
 
 
-            destino_zip = metodos.iniciar_compactacao(caminho, destino_dir, mes_desejado, ano_desejado)
-            if metodos.dados.ler_dados('modoenvio') == "Telegram":
-                # reativar ao finalizar o funcionamento
-                metodos.telegrambot.enviar_arquivo(metodos.dados.ler_dados('telegrambot'), metodos.dados.ler_dados('chat_id'), destino_zip)
-                #metodos.enviar_email()
+        destino_zip = metodos.iniciar_compactacao(f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{metodos.dados.ler_dados('cliente')}", destino_dir, mes_desejado, ano_desejado)
+        if metodos.dados.ler_dados('modoenvio') == "Telegram" and encontrado_notas:
+            # reativar ao finalizar o funcionamento
+            metodos.telegrambot.enviar_arquivo(metodos.dados.ler_dados('telegrambot'), metodos.dados.ler_dados('chat_id'), destino_zip)
+            #metodos.enviar_email()
         else:
             if modo_envio_cb["values"][0] == "Telegram":
                 metodos.telegrambot.enviar_mensagem(metodos.dados.ler_dados('telegrambot'), metodos.dados.ler_dados('chat_id'),f"{ano_desejado} - {mes_str[mes_desejado - 1]} - {metodos.dados.ler_dados('cliente')}\nNenhum XML gerado")
@@ -148,7 +149,8 @@ def iniciar_janela(version, repo):
         linha += 1
 
         btn_executar = ttk.Button(alterar, text="Reenviar notas",
-                                   command=lambda: (preparar_xmls(int(ent_mes.get()) + 1, int(ent_ano.get())), alterar.quit()))
+                                   command=lambda: (preparar_xmls(int(ent_mes.get()) + 1, int(ent_ano.get())),
+                                                    alterar.quit()))
         btn_executar.grid(row=linha, column=0, columnspan=4, padx=pad_x, pady=pad_y, sticky="we")
 
         alterar.mainloop()

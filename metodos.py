@@ -3,14 +3,14 @@ import os, shutil
 import platform
 import threading
 import zipfile
-import dados
 from pathlib import Path
 from platform import system
 from tkinter import messagebox, filedialog
 import logging
 from datetime import datetime
+### Módulos próprios
+import dados, telegrambot
 
-import telegrambot
 # Pasta padrão dos sistemas de notas
 smallsoft = "C:\\Program Files (x86)\\SmallSoft\\Small Commerce\\xmldestinatario\\NFCE"
 
@@ -24,7 +24,6 @@ def log_mensagem(msg):
 home_dir = os.path.expanduser('~')
 system = system()
 if system == 'Linux':
-
     if not os.path.exists(f"{home_dir}/log"):
         os.mkdir(f"{home_dir}/log")
 
@@ -33,8 +32,8 @@ if system == 'Linux':
         level=logging.ERROR,         # nível de log
         format="%(asctime)s - %(levelname)s - %(message)s"
     )
-elif system == 'Windows':
 
+elif system == 'Windows':
     if not os.path.exists(f"c:/temp"):
         os.mkdir(f"c:/temp")
 
@@ -43,6 +42,7 @@ elif system == 'Windows':
         level=logging.ERROR,  # nível de log
         format="%(asctime)s - %(levelname)s - %(message)s"
     )
+
 def copiar_xmls(origem, destino_dir, cliente, mes_desejado, ano_desejado):
     destino_compactar = ""
     if origem == smallsoft:
@@ -61,9 +61,6 @@ def copiar_xmls(origem, destino_dir, cliente, mes_desejado, ano_desejado):
         if not os.path.exists(destino_dir):
             os.makedirs(destino_dir)
             if not os.path.exists(f"{destino_compactar}/relatorio"): os.makedirs(f"{destino_compactar}/relatorio")
-    # Defina o mês e ano que deseja copiar (exemplo: março de 2024)
-    #mes_desejado = 4
-    #ano_desejado = 2026
 
     qtd_arquivos = False
     for arquivo in os.listdir(origem):
@@ -81,10 +78,10 @@ def copiar_xmls(origem, destino_dir, cliente, mes_desejado, ano_desejado):
                 #print(f"Arquivo {arquivo} copiado (criado em {data_modificacao})")
 
     if qtd_arquivos:
-        return destino_compactar
+        return qtd_arquivos
     else:
         shutil.rmtree(destino_compactar)
-        return ""
+        return False
 
 resultado = {}
 def compactar(origem, destino_zip, mes_desejado, ano_desejado, out):
