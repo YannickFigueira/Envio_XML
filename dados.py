@@ -4,6 +4,8 @@ import os
 import crypto
 import base64
 
+adicionar_dados = ""
+
 # Dados iniciais
 dados_chave = {
     "app": {
@@ -60,7 +62,8 @@ with open(f"{dados_dir}/chave.json", "r", encoding="utf-8") as c:
 def open_key():
     valor_chave = chave["crypto"]["key"]
     if not valor_chave == "":
-        chave_crypto = base64.b64decode(chave["crypto"]["key"])
+        separar_chave = chave["crypto"]["key"].split("__")
+        chave_crypto = base64.b64decode(separar_chave[0])
     else:
         chave_crypto = chave["crypto"]["key"]
     # print(chave_crypto, "valor recuperado")
@@ -87,7 +90,7 @@ def gravar_dados(campo, valor):
 def gravar_chave(chave_gravar):
     # print(chave_gravar, " Valor da chave")
     chave_b64 = base64.b64encode(chave_gravar).decode("utf-8")
-    chave["crypto"]["key"] = chave_b64
+    chave["crypto"]["key"] = f"{chave_b64}__{adicionar_dados}"
     with open(f"{dados_dir}/chave.json", "w", encoding="utf-8") as cw:
         json.dump(chave, cw, indent=4, ensure_ascii=False)
 

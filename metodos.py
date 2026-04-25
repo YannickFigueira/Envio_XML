@@ -182,9 +182,9 @@ dados.gerar_chave()
 def gravar_dados(cliente, email, senha, pasta, emails, modoenvio, sistema_emissor):
     entrada = ""
     if platform.system() == "Windows":
-        entrada = str(pasta).replace(" ", "").replace("/", "\\")
+        entrada = str(pasta).replace("/", "\\")
     elif platform.system() == "Linux":
-        entrada = str(pasta).replace(" ", "")
+        entrada = str(pasta)
     else:
         log_mensagem("Sistema não suportado")
     caminho = Path(entrada)
