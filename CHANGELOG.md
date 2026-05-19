@@ -4,3 +4,4 @@
 ### Recriado programa de envio de XMLs automático
 - Nova versão funcionando para gerar relatórios, com registro de XMLs não encontrados e envio pelo Telegram
 - Configurado inicialmente para funcionar com SmallSoft, novos serão adicionados em atualizações futuras
+- Identificado erro na execução após atualização sobre o programa anterior e corrigido
