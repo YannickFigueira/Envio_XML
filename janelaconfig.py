@@ -47,9 +47,6 @@ def iniciar_janela(version, repo):
         sys.exit()
 
     def preparar_xmls(mes_desejado, ano_desejado):
-        smallsoft = "C:\\Program Files (x86)\\SmallSoft\\Small Commerce"
-
-
         if mes_desejado == 1:
             mes_desejado = 12
             ano_desejado -= 1
@@ -129,29 +126,32 @@ def iniciar_janela(version, repo):
 
     def alterar_dados():
         alterar = tk.Tk()
-        alterar.title("Alterar Dados")
-        linha = 0
+        alterar.title("Reenviar XMLs")
+        linha_reenviar = 0
 
         alterar.resizable(False, False)
 
         label_ano = ttk.Label(alterar, text="Ano da nota:")
-        label_ano.grid(row=linha, column=0, padx=pad_x, pady=pad_y, sticky="w")
+        label_ano.grid(row=linha_reenviar, column=0, padx=pad_x, pady=pad_y, sticky="w")
 
         ent_ano = ttk.Entry(alterar, width=25)
-        ent_ano.grid(row=linha, column=1, padx=pad_x, pady=pad_y, sticky="we")
-        linha += 1
+        ent_ano.grid(row=linha_reenviar, column=1, padx=pad_x, pady=pad_y, sticky="we")
+        linha_reenviar += 1
 
         lbl_mes = ttk.Label(alterar, text="mês da nota:")
-        lbl_mes.grid(row=linha, column=0, padx=pad_x, pady=pad_y, sticky="w")
+        lbl_mes.grid(row=linha_reenviar, column=0, padx=pad_x, pady=pad_y, sticky="w")
 
         ent_mes = ttk.Entry(alterar, width=25)
-        ent_mes.grid(row=linha, column=1, padx=pad_x, pady=pad_y, sticky="we")
-        linha += 1
+        ent_mes.grid(row=linha_reenviar, column=1, padx=pad_x, pady=pad_y, sticky="we")
+        linha_reenviar += 1
 
         btn_executar = ttk.Button(alterar, text="Reenviar notas",
-                                   command=lambda: (preparar_xmls(int(ent_mes.get()) + 1, int(ent_ano.get())),
-                                                    alterar.quit()))
-        btn_executar.grid(row=linha, column=0, columnspan=4, padx=pad_x, pady=pad_y, sticky="we")
+                                   command=lambda: renviar_xmls())
+        btn_executar.grid(row=linha_reenviar, column=0, columnspan=4, padx=pad_x, pady=pad_y, sticky="we")
+
+        def renviar_xmls():
+            preparar_xmls(int(ent_mes.get()) + 1, int(ent_ano.get()))
+            alterar.quit()
 
         alterar.mainloop()
 
@@ -186,8 +186,8 @@ def iniciar_janela(version, repo):
     if platform.system() == "Windows":
         root.iconbitmap("imagens/xml.ico")
     elif platform.system() == "Linux":
-        icon = tk.PhotoImage(file="imagens/xml.png")
-        root.iconphoto(True, icon)
+        icon_xml = tk.PhotoImage(file="imagens/xml.png")
+        root.iconphoto(True, icon_xml)
     root.resizable(False, False)
     # Redefine o comportamento do botão de fechar
     root.protocol("WM_DELETE_WINDOW", esconder_janela)
@@ -216,7 +216,7 @@ def iniciar_janela(version, repo):
     ttk.Label(root, text="Sistema emissor:").grid(row=linha, column=0, padx=pad_x, pady=pad_y, sticky="w")
     sistema_cb = ttk.Combobox(root, width=15, takefocus=False, state="readonly")
     sistema_cb.grid(row=linha, column=1, padx=pad_x, pady=pad_y, sticky="ew")
-    sistema_cb["values"] = ["SmallSoft", "Outro"]
+    sistema_cb["values"] = ["SmallSoft", "Comercial", "Outro"]
     sistema_cb.current(0)
 
     ttk.Label(root, text="Modo de envio:").grid(row=linha, column=2, padx=pad_x, pady=pad_y, sticky="w")
@@ -229,10 +229,21 @@ def iniciar_janela(version, repo):
     label_caminho = ttk.Label(root, text="Caminho do sistema:")
     label_caminho.grid(row=linha, column=0, padx=pad_x, pady=pad_y, sticky="w")
 
-    button_selecionar_origem = ttk.Button(root, text="Selecionar pasta do sistema de notas", command=lambda: (entrada_caminho.delete(0, "end"),
-                                                                                  entrada_caminho.insert(0, metodos.verificar_sistema(sistema_cb.get()))))
+    button_selecionar_origem = ttk.Button(root, text="Selecionar pasta do sistema de notas",
+                                          command=lambda: gravar_caminho())
     button_selecionar_origem.grid(row=linha, column=1, columnspan=3, padx=pad_x, pady=pad_y, sticky="we")
     linha += 1
+
+    def gravar_caminho():
+        # 1. Busca o sistema selecionado no Combobox
+        sistema = sistema_cb.get()
+
+        # 2. Roda a sua lógica de verificação
+        caminho_verificado = metodos.verificar_sistema(sistema)
+
+        # 3. Limpa e insere no campo de entrada
+        entrada_caminho.delete(0, "end")
+        entrada_caminho.insert(0, caminho_verificado)
 
     entrada_caminho = ttk.Entry(root)
     entrada_caminho.grid(row=linha, column=0, columnspan=4, padx=pad_x, pady=pad_y, sticky="we")
@@ -248,13 +259,14 @@ def iniciar_janela(version, repo):
     text_area = tk.Text(root, width=50, height=5)
     text_area.grid(row=linha, column=0, columnspan=4, padx=pad_x, pady=pad_y, sticky="we")
     linha += 1
-    button_gravar = ttk.Button(root, text="Gravar", command = lambda: (executar_acao(metodos.gravar_dados(entrada_cliente.get().replace(" ", ""),
-                                                                                            entrada_email.get().replace(" ", ""),
-                                                                                            entrada_senha.get().replace(" ", ""),
+    button_gravar = ttk.Button(root, text="Gravar",
+                               command = lambda: executar_acao(metodos.gravar_dados(entrada_cliente.get(),
+                                                                                            entrada_email.get(),
+                                                                                            entrada_senha.get(),
                                                                                             entrada_caminho.get(),
                                                                                             text_area.get("1.0", tk.END),
                                                                                                           modo_envio_cb.get(),
-                                                                                                          sistema_cb.get())    )))
+                                                                                                          sistema_cb.get())))
     button_gravar.grid(row=linha, column=0, columnspan=4, padx=pad_x, pady=pad_y, sticky="we")
     linha += 1
 

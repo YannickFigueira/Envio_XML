@@ -198,7 +198,9 @@ def gravar_dados(cliente, email, senha, pasta, emails, modoenvio, sistema_emisso
         dados.gravar_dados("modoenvio", modoenvio)
         dados.gravar_dados("sistema_emissor", sistema_emissor)
         if dados.ler_dados('telegrambot') == "":
-            token, chat_id = telegrambot.janela_telegram()
+            #token, chat_id = telegrambot.janela_telegram()
+            messagebox.showinfo("Telegram", "Selecione o arquivo de configuração do Telegram")
+            token, chat_id = selecionar_arquivo()
             dados.gravar_dados("telegrambot", token)
             dados.gravar_dados("chat_id", chat_id)
         resposta = messagebox.askyesno("Completo", "Dados gravados com sucesso!\nDeseja fazer a primeira execução?")
@@ -206,8 +208,50 @@ def gravar_dados(cliente, email, senha, pasta, emails, modoenvio, sistema_emisso
         return resposta
     else:
         messagebox.showwarning("ERRO", "Pasta não existe!")
+        return None
 
 dados.open_key()
+
+def selecionar_arquivo():
+    # Define o caminho padrão expandindo o $USER atual do sistema de forma segura
+    # No Linux/Mac, isso aponta para /home/usuario/Documentos (ou Documentos com "D" maiúsculo)
+    diretorio_padrao = os.path.expanduser("~/Documentos")
+
+    # Se a pasta "Documentos" em português não existir, tenta em inglês ou usa a Home
+    if not os.path.exists(diretorio_padrao):
+        diretorio_padrao = os.path.expanduser("~/Documents")
+    if not os.path.exists(diretorio_padrao):
+        diretorio_padrao = os.path.expanduser("~")
+
+    # Abre o seletor focado em arquivos .txt
+    arquivo = filedialog.askopenfilename(
+        title="Selecione o arquivo do Telegram",
+        initialdir=diretorio_padrao,
+        filetypes=[("Arquivos de Texto", "*.txt"), ("Todos os arquivos", "*.*")]
+    )
+
+    if arquivo:  # Se o usuário não cancelar
+        token, chat_id = carregar_texto(arquivo)
+        return token, chat_id
+    else:
+        token, chat_id = carregar_texto("")
+        return token, chat_id
+
+def carregar_texto(arquivo):
+
+    if os.path.isfile(arquivo):
+        with open(arquivo, "r", encoding="utf-8") as f:
+            texto = f.read()
+            paragrafo = texto.split("\n")
+            telegram_token = paragrafo[0].split("=")
+            telegram_chat_id = paragrafo[1].split("=")
+            dados.gravar_dados("telegrambot", telegram_token[1])
+            dados.gravar_dados("chat_id", telegram_chat_id[1])
+    else:
+        messagebox.showerror("Erro", f"Arquivo não encontrado: {arquivo}")
+
+    return telegram_token[1], telegram_chat_id[1]
+
 
 # Exemplo de uso:
 #origem = r"C:\Users\yannick\Documents\projeto"   # pasta de origem

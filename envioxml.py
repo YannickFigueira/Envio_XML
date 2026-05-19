@@ -1,7 +1,7 @@
 import argparse
 import janelaconfig
 
-VERSION = "v4.0.0rc1"
+VERSION = "v4.0.0rc2"
 repo= "Envio_XML"
 
 parser = argparse.ArgumentParser(prog="envioxml")
