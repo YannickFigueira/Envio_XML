@@ -46,7 +46,7 @@ dados_config = {
 # Diretórios base
 dados_dir = "dados"
 
-if os.path.exists("Dados"):
+if os.path.exists("Dados") and os.path.isfile("CopiarXML3.jar"):
     os.rename("Dados", "Dados.old")
     os.rename("Imagens", "imagens")
 
