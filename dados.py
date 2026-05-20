@@ -38,6 +38,7 @@ dados_config = {
         "ultima_nota_danfe": "",
         "ultima_nota_nfce": "",
         "relatorio": "True",
+        "segundo_sistema": "False",
         "modoenvio": "Telegram",
         "telegrambot": "",
         "chat_id": ""
@@ -121,6 +122,8 @@ def ler_dados(dados):
     emails = config["database"]["emailsparaenvio"]
     relatorio_str = config["database"]["relatorio"]
     relatorio = relatorio_str.strip().lower() == "true"
+    segundo_sis_str = config["database"]["segundo_sistema"]
+    segundo_sis = segundo_sis_str.strip().lower() == "true"
     sistema_emissor = config["database"]["sistema_emissor"]
     modoenvio = config["database"]["modoenvio"]
     telegrambot = config["database"]["telegrambot"]
@@ -142,6 +145,8 @@ def ler_dados(dados):
         return emails
     elif dados == "relatorio":
         return relatorio
+    elif dados == "segundo_sistema":
+        return segundo_sis
     elif dados == "sistema_emissor":
         return sistema_emissor
     elif dados == "modoenvio":

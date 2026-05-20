@@ -11,7 +11,8 @@
 - Configurado para carregar telegram com arquivo TXT
 - Adicionado configurações para o sistema Comercial
 - Modificado janela de reenvio para usar botão combo
-- janela reenvio agora bloqueia a janela principal
+- Janela reenvio agora bloqueia a janela principal
+- Adicionado opção para um segundo sistema
 
 ### Fixed
 - Ajustado para vir com o sistema configurado selecionado

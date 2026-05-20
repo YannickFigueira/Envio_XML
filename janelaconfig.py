@@ -270,8 +270,13 @@ def iniciar_janela(version, repo):
 
     checkbox_relatorio = tk.BooleanVar()
     checkbox_relatorio.set(metodos.dados.ler_dados('relatorio'))
-    checkbox = ttk.Checkbutton(root, text="Gerar relatório:", variable=checkbox_relatorio)
-    checkbox.grid(row=linha, column=0, padx=pad_x, pady=pad_y, sticky="w")
+    checkbox_rel = ttk.Checkbutton(root, text="Gerar relatório:", variable=checkbox_relatorio)
+    checkbox_rel.grid(row=linha, column=0, padx=pad_x, pady=pad_y, sticky="w")
+
+    checkbox_sistema = tk.BooleanVar()
+    checkbox_sistema.set(metodos.dados.ler_dados('segundo_sistema'))
+    checkbox_sis = ttk.Checkbutton(root, text="Configurar segundo sistema:", variable=checkbox_sistema)
+    checkbox_sis.grid(row=linha, column=1, padx=pad_x, pady=pad_y, sticky="w")
     linha += 1
 
     # Área de texto
