@@ -11,7 +11,7 @@ from pystray import Icon, MenuItem, Menu
 from PIL import Image
 
 ### Módulos próprios
-import metodos, verificarversao, xmlreadnota, transferarea
+import metodos, verificarversao, xmlreadnota, transferarea, telegrambot
 
 agora = datetime.now()
 dia = agora.strftime("%d")
@@ -61,7 +61,9 @@ def iniciar_janela(version, repo):
         if metodos.dados.ler_dados('sistema_emissor') == "SmallSoft":
             caminho_danfe = f"{metodos.dados.ler_dados('caminho')}\\xmldestinatario"
             caminho_nfce = f"{metodos.dados.ler_dados('caminho')}\\xmldestinatario\\NFCE"
-
+        elif metodos.dados.ler_dados('sistema_emissor') == "Comercial":
+            caminho_danfe = f"{metodos.dados.ler_dados('caminho')}\\docs"
+            caminho_nfce = ""
 
         # Nota DANFE
         encontrado_notas = metodos.copiar_xmls(caminho_danfe, destino_dir,
@@ -83,11 +85,11 @@ def iniciar_janela(version, repo):
         destino_zip = metodos.iniciar_compactacao(f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{metodos.dados.ler_dados('cliente')}", destino_dir, mes_desejado, ano_desejado)
         if metodos.dados.ler_dados('modoenvio') == "Telegram" and encontrado_notas:
             # reativar ao finalizar o funcionamento
-            metodos.telegrambot.enviar_arquivo(metodos.dados.ler_dados('telegrambot'), metodos.dados.ler_dados('chat_id'), destino_zip)
+            telegrambot.enviar_arquivo(metodos.dados.ler_dados('telegrambot'), metodos.dados.ler_dados('chat_id'), destino_zip)
             #metodos.enviar_email()
         else:
             if modo_envio_cb["values"][0] == "Telegram":
-                metodos.telegrambot.enviar_mensagem(metodos.dados.ler_dados('telegrambot'), metodos.dados.ler_dados('chat_id'),f"{ano_desejado} - {mes_str[mes_desejado - 1]} - {metodos.dados.ler_dados('cliente')}\nNenhum XML gerado")
+                telegrambot.enviar_mensagem(metodos.dados.ler_dados('telegrambot'), metodos.dados.ler_dados('chat_id'),f"{ano_desejado} - {mes_str[mes_desejado - 1]} - {metodos.dados.ler_dados('cliente')}\nNenhum XML gerado")
 
         metodos.dados.gravar_dados("executado", "True")
 
@@ -119,6 +121,7 @@ def iniciar_janela(version, repo):
             subprocess.run(["xdg-open", arquivo])  # ou "gedit"
         else:
             metodos.log_mensagem("Sistema não suportado")
+
     def reset_telegram():
         metodos.dados.gravar_dados("telegrambot", "")
         metodos.dados.gravar_dados("chat_id", "")

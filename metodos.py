@@ -9,10 +9,11 @@ from tkinter import messagebox, filedialog
 import logging
 from datetime import datetime
 ### Módulos próprios
-import dados, telegrambot
+import dados
 
 # Pasta padrão dos sistemas de notas
 smallsoft = "C:\\Program Files (x86)\\SmallSoft\\Small Commerce\\xmldestinatario\\NFCE"
+comercial = "C:\\Comercial\\docs"
 
 def log_mensagem(msg):
     frame = inspect.currentframe().f_back
@@ -49,6 +50,7 @@ def copiar_xmls(origem, destino_dir, cliente, mes_desejado, ano_desejado):
         dir_nfce = f"\\nfce"
     else:
         dir_nfce = ""
+
     if system == "Windows":
         destino_compactar = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{cliente}"
         destino_dir = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{cliente}\\notas{dir_nfce}"
@@ -75,7 +77,6 @@ def copiar_xmls(origem, destino_dir, cliente, mes_desejado, ano_desejado):
             if data_modificacao.month == mes_desejado and data_modificacao.year == ano_desejado:
                 qtd_arquivos = True
                 shutil.copy2(caminho_arquivo, destino_dir)
-                #print(f"Arquivo {arquivo} copiado (criado em {data_modificacao})")
 
     if qtd_arquivos:
         return qtd_arquivos
@@ -112,11 +113,9 @@ def compactar(origem, destino_zip, mes_desejado, ano_desejado, out):
                                 zipf.write(caminho_completo, caminho_relativo)
 
                                 #atualizar_barra(contador, total, progress_canvas)
-                                #print(f"{contador} / {total}")
                                 contador += 1
                             except Exception as e:
                                 logging.error(f"Erro ao compactar {caminho_completo}: {e}")
-                        #print(f"{contador} / {len(arquivos)}")
                 shutil.rmtree(origem)
                     #atualizar_barra(total, total, progress_canvas)
                     #messagebox.showinfo("Completo", "Finalizado com exito.")
@@ -149,14 +148,17 @@ def selecionar_pasta():
         return ""
 
 def verificar_sistema(sistema_emissor):
+    resposta = False
+    caminho = ""
     if sistema_emissor == "SmallSoft":
         resposta = messagebox.askyesno("Escolha", f"Sistema selecionado {sistema_emissor}\nQuer usar a pasta padrão")
         caminho = "C:\\Program Files (x86)\\SmallSoft\\Small Commerce"
+    elif sistema_emissor == "Comercial":
+        resposta = messagebox.askyesno("Escolha", f"Sistema selecionado {sistema_emissor}\nQuer usar a pasta padrão")
+        caminho = "C:\\Comercial"
 
-        if resposta:
-            return caminho
-        else:
-            return selecionar_pasta()
+    if resposta:
+        return caminho
     else:
         return selecionar_pasta()
 
@@ -187,6 +189,7 @@ def gravar_dados(cliente, email, senha, pasta, emails, modoenvio, sistema_emisso
         entrada = str(pasta)
     else:
         log_mensagem("Sistema não suportado")
+
     caminho = Path(entrada)
     if caminho.exists() and pasta != "":
         dados.gravar_dados("cliente", cliente)
