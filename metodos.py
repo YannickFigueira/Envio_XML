@@ -17,9 +17,14 @@ comercial = "C:\\Comercial\\docs"
 
 def log_mensagem(msg):
     frame = inspect.currentframe().f_back
-    linha = frame.f_lineno
-    arquivo = frame.f_code.co_filename
-    print(f"{msg} (arquivo: {arquivo}, linha: {linha})")
+
+    if frame is not None:
+        linha = frame.f_lineno
+        arquivo = frame.f_code.co_filename
+        print(f"{msg} (arquivo: {arquivo}, linha: {linha})")
+    else:
+        # Fallback caso não encontre o frame anterior (ex: chamado do escopo global)
+        print(f"{msg} (arquivo: desconhecido, linha: desconhecida)")
 
 # Variáveis
 home_dir = os.path.expanduser('~')
