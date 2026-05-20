@@ -3,9 +3,9 @@ import sys
 import threading
 import tkinter as tk
 from tkinter import ttk, messagebox
-from datetime import datetime
 from pathlib import Path
 import platform, os
+from datetime import datetime
 
 from pystray import Icon, MenuItem, Menu
 from PIL import Image
@@ -13,6 +13,7 @@ from PIL import Image
 ### Módulos próprios
 import metodos, verificarversao, xmlreadnota, transferarea, telegrambot, separarcancelada
 
+# Variaveis
 agora = datetime.now()
 dia = agora.strftime("%d")
 mes = agora.strftime("%m")
@@ -20,6 +21,9 @@ ano = agora.strftime("%Y")
 
 pad_x = 10
 pad_y = 5
+
+mes_str = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro",
+               "Novembro", "Dezembro"]
 
 if platform.system() == "Windows":
     destino_dir = "C:\\temp\\XMLs"
@@ -53,8 +57,7 @@ def iniciar_janela(version, repo):
         else:
             mes_desejado -= 1
 
-        mes_str = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro",
-               "Novembro", "Dezembro"]
+
 
         caminho_danfe = f"{metodos.dados.ler_dados('caminho')}"
         caminho_nfce = ""
@@ -70,13 +73,11 @@ def iniciar_janela(version, repo):
                                       metodos.dados.ler_dados('cliente'), mes_desejado, ano_desejado)
         if encontrado_notas:
             if checkbox_relatorio.get():
-                origem_separada = destino_dir
+                origem_separada = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{metodos.dados.ler_dados('cliente')}\\notas"
                 destino_separada = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{metodos.dados.ler_dados('cliente')}\\canceladas"
-                metodos.log_mensagem(origem_separada)
-                metodos.log_mensagem(destino_separada)
                 separarcancelada.separar_notas(origem_separada, destino_separada)
 
-                #xmlreadnota.ler_dados_notas(f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{metodos.dados.ler_dados('cliente')}", "", metodos.dados)
+                xmlreadnota.ler_dados_notas(f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{metodos.dados.ler_dados('cliente')}", "", metodos.dados)
 
         # Nota NFCE
         path = Path(caminho_nfce)
@@ -87,12 +88,9 @@ def iniciar_janela(version, repo):
                 if checkbox_relatorio.get():
                     xmlreadnota.ler_dados_notas(f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{metodos.dados.ler_dados('cliente')}", "/NFCE/", metodos.dados)
 
-
-        #destino_zip = metodos.iniciar_compactacao(f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{metodos.dados.ler_dados('cliente')}", destino_dir, mes_desejado, ano_desejado)
+        destino_zip = metodos.iniciar_compactacao(f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{metodos.dados.ler_dados('cliente')}", destino_dir, mes_desejado, ano_desejado)
         if metodos.dados.ler_dados('modoenvio') == "Telegram" and encontrado_notas:
-            # reativar ao finalizar o funcionamento
-            metodos.log_mensagem("Verificar telegram")
-            #telegrambot.enviar_arquivo(metodos.dados.ler_dados('telegrambot'), metodos.dados.ler_dados('chat_id'), destino_zip)
+            telegrambot.enviar_arquivo(metodos.dados.ler_dados('telegrambot'), metodos.dados.ler_dados('chat_id'), destino_zip)
             #metodos.enviar_email()
         else:
             if modo_envio_cb["values"][0] == "Telegram":
@@ -130,13 +128,18 @@ def iniciar_janela(version, repo):
             metodos.log_mensagem("Sistema não suportado")
 
     def reset_telegram():
-        metodos.dados.gravar_dados("telegrambot", "")
-        metodos.dados.gravar_dados("chat_id", "")
-        messagebox.showinfo("Completo", "Dados apagados com sucesso!")
+        resposta = messagebox.askyesno("Verificar", "Deseja mesmo deletar os dados")
+
+        if resposta:
+            metodos.dados.gravar_dados("telegrambot", "")
+            metodos.dados.gravar_dados("chat_id", "")
+            messagebox.showinfo("Completo", "Dados apagados com sucesso!")
 
     def alterar_dados():
-        alterar = tk.Tk()
+        alterar = tk.Toplevel(root)
         alterar.title("Reenviar XMLs")
+        alterar.iconbitmap("imagens/xml.ico")
+        alterar.grab_set()
         linha_reenviar = 0
 
         alterar.resizable(False, False)
@@ -144,15 +147,24 @@ def iniciar_janela(version, repo):
         label_ano = ttk.Label(alterar, text="Ano da nota:")
         label_ano.grid(row=linha_reenviar, column=0, padx=pad_x, pady=pad_y, sticky="w")
 
-        ent_ano = ttk.Entry(alterar, width=25)
+        # 1. Pega o ano atual do sistema de forma dinâmica
+        ano_atual = datetime.now().year
+        # 2. Cria a lista de anos de 2026 (ano atual) até 2000 em ordem decrescente
+        # O passo -1 faz a contagem ir voltando no tempo
+        anos_disponiveis = [str(ano_alterar) for ano_alterar in range(ano_atual, 1999, -1)]
+        # 3. Cria o Combobox no lugar do Entry
+        ent_ano = ttk.Combobox(alterar, width=25, values=anos_disponiveis, state="readonly")
         ent_ano.grid(row=linha_reenviar, column=1, padx=pad_x, pady=pad_y, sticky="we")
+        # 4. Define o ano atual como a opção padrão pré-selecionada (índice 0 da lista)
+        ent_ano.current(0)
         linha_reenviar += 1
 
         lbl_mes = ttk.Label(alterar, text="mês da nota:")
         lbl_mes.grid(row=linha_reenviar, column=0, padx=pad_x, pady=pad_y, sticky="w")
 
-        ent_mes = ttk.Entry(alterar, width=25)
+        ent_mes = ttk.Combobox(alterar, width=25, values=mes_str, state="readonly")
         ent_mes.grid(row=linha_reenviar, column=1, padx=pad_x, pady=pad_y, sticky="we")
+        ent_mes.current(0)
         linha_reenviar += 1
 
         btn_executar = ttk.Button(alterar, text="Reenviar notas",
@@ -160,12 +172,9 @@ def iniciar_janela(version, repo):
         btn_executar.grid(row=linha_reenviar, column=0, columnspan=4, padx=pad_x, pady=pad_y, sticky="we")
 
         def renviar_xmls():
-            preparar_xmls(int(ent_mes.get()) + 1, int(ent_ano.get()))
+            preparar_xmls(int(ent_mes.current()) + 1, int(ent_ano.get()))
             messagebox.showinfo("Concluído", "XML preparado e enviado com sucesso!")
-
-        alterar.mainloop()
-
-
+            alterar.destroy()
 
     # Menu Config
     menu_config = tk.Menu(barra_menu, tearoff=0)
@@ -227,7 +236,6 @@ def iniciar_janela(version, repo):
     sistema_cb = ttk.Combobox(root, width=15, takefocus=False, state="readonly")
     sistema_cb.grid(row=linha, column=1, padx=pad_x, pady=pad_y, sticky="ew")
     sistema_cb["values"] = ["SmallSoft", "Comercial", "Outro"]
-    #sistema_cb.current(0)
     sistema_cb.set(metodos.dados.ler_dados('sistema_emissor'))
 
     ttk.Label(root, text="Modo de envio:").grid(row=linha, column=2, padx=pad_x, pady=pad_y, sticky="w")
