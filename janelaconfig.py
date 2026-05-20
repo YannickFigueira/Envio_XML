@@ -11,7 +11,7 @@ from pystray import Icon, MenuItem, Menu
 from PIL import Image
 
 ### Módulos próprios
-import metodos, verificarversao, xmlreadnota, transferarea, telegrambot
+import metodos, verificarversao, xmlreadnota, transferarea, telegrambot, separarcancelada
 
 agora = datetime.now()
 dia = agora.strftime("%d")
@@ -70,7 +70,13 @@ def iniciar_janela(version, repo):
                                       metodos.dados.ler_dados('cliente'), mes_desejado, ano_desejado)
         if encontrado_notas:
             if checkbox_relatorio.get():
-                xmlreadnota.ler_dados_notas(f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{metodos.dados.ler_dados('cliente')}", "", metodos.dados)
+                origem_separada = destino_dir
+                destino_separada = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{metodos.dados.ler_dados('cliente')}\\canceladas"
+                metodos.log_mensagem(origem_separada)
+                metodos.log_mensagem(destino_separada)
+                separarcancelada.separar_notas(origem_separada, destino_separada)
+
+                #xmlreadnota.ler_dados_notas(f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{metodos.dados.ler_dados('cliente')}", "", metodos.dados)
 
         # Nota NFCE
         path = Path(caminho_nfce)
@@ -82,10 +88,11 @@ def iniciar_janela(version, repo):
                     xmlreadnota.ler_dados_notas(f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{metodos.dados.ler_dados('cliente')}", "/NFCE/", metodos.dados)
 
 
-        destino_zip = metodos.iniciar_compactacao(f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{metodos.dados.ler_dados('cliente')}", destino_dir, mes_desejado, ano_desejado)
+        #destino_zip = metodos.iniciar_compactacao(f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{metodos.dados.ler_dados('cliente')}", destino_dir, mes_desejado, ano_desejado)
         if metodos.dados.ler_dados('modoenvio') == "Telegram" and encontrado_notas:
             # reativar ao finalizar o funcionamento
-            telegrambot.enviar_arquivo(metodos.dados.ler_dados('telegrambot'), metodos.dados.ler_dados('chat_id'), destino_zip)
+            metodos.log_mensagem("Verificar telegram")
+            #telegrambot.enviar_arquivo(metodos.dados.ler_dados('telegrambot'), metodos.dados.ler_dados('chat_id'), destino_zip)
             #metodos.enviar_email()
         else:
             if modo_envio_cb["values"][0] == "Telegram":
@@ -154,7 +161,7 @@ def iniciar_janela(version, repo):
 
         def renviar_xmls():
             preparar_xmls(int(ent_mes.get()) + 1, int(ent_ano.get()))
-            alterar.quit()
+            messagebox.showinfo("Concluído", "XML preparado e enviado com sucesso!")
 
         alterar.mainloop()
 
@@ -220,7 +227,8 @@ def iniciar_janela(version, repo):
     sistema_cb = ttk.Combobox(root, width=15, takefocus=False, state="readonly")
     sistema_cb.grid(row=linha, column=1, padx=pad_x, pady=pad_y, sticky="ew")
     sistema_cb["values"] = ["SmallSoft", "Comercial", "Outro"]
-    sistema_cb.current(0)
+    #sistema_cb.current(0)
+    sistema_cb.set(metodos.dados.ler_dados('sistema_emissor'))
 
     ttk.Label(root, text="Modo de envio:").grid(row=linha, column=2, padx=pad_x, pady=pad_y, sticky="w")
     modo_envio_cb = ttk.Combobox(root, width=15, takefocus=False, state="readonly")
