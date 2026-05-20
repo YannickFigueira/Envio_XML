@@ -5,3 +5,15 @@
 - Nova versão funcionando para gerar relatórios, com registro de XMLs não encontrados e envio pelo Telegram
 - Configurado inicialmente para funcionar com SmallSoft, novos serão adicionados em atualizações futuras
 - Identificado erro na execução após atualização sobre o programa anterior e corrigido
+
+## [v4.0.0.rc2] - 2026-05-20
+### Changes
+- Configurado para carregar telegram com arquivo TXT
+- Adicionado configurações para o sistema Comercial
+- Modificado janela de reenvio para usar botão combo
+- janela reenvio agora bloqueia a janela principal
+
+### Fixed
+- Ajustado para vir com o sistema configurado selecionado
+- Corrigido janela de reenvio para não fechar o programa após a execução
+- Corrigido janela reenvio com o ícone do programa
