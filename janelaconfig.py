@@ -247,8 +247,7 @@ def iniciar_janela(version, repo):
     label_senha = ttk.Label(root, text="senha:")
     label_senha.grid(row=linha, column=2, padx=pad_x, pady=pad_y, sticky="w")
 
-    #entrada_senha = ttk.Entry(root, width=15, show="*")
-    entrada_senha = ttk.Entry(root, width=15)
+    entrada_senha = ttk.Entry(root, width=15, show="*")
     entrada_senha.grid(row=linha, column=3, padx=pad_x, pady=pad_y, sticky="we")
     linha += 1
 
