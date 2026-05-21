@@ -6,7 +6,7 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[],
-    hiddenimports=['crypto', 'dados', 'enviaremail', 'verificarversao', 'janelaconfig', 'metodos', 'relatorio',
+    hiddenimports=['crypto', 'dados', 'enviaremail', 'verificarversao', 'janelaconfig', 'metodos', 'relatorio', 'separarcancelada',
     'telegrambot', 'xmlreadnota', 'telegram', 'pystray', 'transferarea'],  # módulos auxiliares
     hookspath=[],
     runtime_hooks=[],
