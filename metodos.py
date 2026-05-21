@@ -203,7 +203,7 @@ def gravar_config(cliente, email, senha, pasta, emails, modoenvio, sistema_emiss
         dados.gravar_dados("cliente", cliente)
         dados.gravar_dados("email", email)
 
-        dados.gravar_dados("senhaemail", dados.crypto.cripto_senha(dados.open_key(), senha))
+        dados.gravar_dados("senhaemail", dados.crypto.cripto_dados(dados.open_key(), senha))
         dados.gravar_dados("caminhopasta", pasta)
         dados.gravar_dados("emailsparaenvio", emails)
         dados.gravar_dados("modoenvio", modoenvio)
@@ -215,8 +215,8 @@ def gravar_config(cliente, email, senha, pasta, emails, modoenvio, sistema_emiss
             #token, chat_id = telegrambot.janela_telegram()
             messagebox.showinfo("Telegram", "Selecione o arquivo de configuração do Telegram")
             token, chat_id = selecionar_arquivo()
-            dados.gravar_dados("telegrambot", token)
-            dados.gravar_dados("chat_id", chat_id)
+            dados.gravar_dados("telegrambot", dados.crypto.cripto_dados(dados.open_key(), token))
+            dados.gravar_dados("chat_id", dados.crypto.cripto_dados(dados.open_key(), chat_id))
         resposta = messagebox.askyesno("Completo", "Dados gravados com sucesso!\nDeseja fazer a primeira execução?")
 
         return resposta

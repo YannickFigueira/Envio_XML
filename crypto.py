@@ -12,7 +12,7 @@ def gerar_chave():
 
 ##senha = "minhaSenha123"
 
-def cripto_senha(chave_resgate, senha):
+def cripto_dados(chave_resgate, senha):
     fernet = Fernet(chave_resgate)
 
 # Criptografar
@@ -21,7 +21,7 @@ def cripto_senha(chave_resgate, senha):
 #print(senha_criptografada)
 
 # --- Para recuperar depois ---
-def recuperar_senha(chave_resgate, senha_criptografada):
+def recuperar_cripto(chave_resgate, senha_criptografada):
     fernet = Fernet(chave_resgate)
     senha_original = fernet.decrypt(senha_criptografada.encode()).decode()
     return senha_original

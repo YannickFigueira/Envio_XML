@@ -4,7 +4,7 @@ import os
 import crypto
 import base64
 
-adicionar_dados = ""
+desmontar_chave = 10 # Mudar para o número desejado
 
 # Dados iniciais
 dados_chave = {
@@ -69,8 +69,8 @@ with open(f"{dados_dir}/chave.json", "r", encoding="utf-8") as c:
 def open_key():
     valor_chave = chave["crypto"]["key"]
     if not valor_chave == "":
-        separar_chave = chave["crypto"]["key"].split("__")
-        chave_crypto = base64.b64decode(separar_chave[0])
+        chave_recuperada = base64.b64decode(valor_chave)
+        chave_crypto = restaurar(chave_recuperada, desmontar_chave)
     else:
         chave_crypto = chave["crypto"]["key"]
     # print(chave_crypto, "valor recuperado")
@@ -94,10 +94,18 @@ def gravar_dados(campo, valor):
     with open(f"{dados_dir}/config.json", "w", encoding="utf-8") as fw:
         json.dump(config, fw, indent=4, ensure_ascii=False)
 
+def embaralhar(texto, qtd):
+    # Move as últimas 'qtd' letras para a frente
+    return texto[-qtd:] + texto[:-qtd]
+
+def restaurar(texto, qtd):
+    # Move as primeiras 'qtd' letras para trás
+    return texto[qtd:] + texto[:qtd]
+
 def gravar_chave(chave_gravar):
     # print(chave_gravar, " Valor da chave")
     chave_b64 = base64.b64encode(chave_gravar).decode("utf-8")
-    chave["crypto"]["key"] = f"{chave_b64}__{adicionar_dados}"
+    chave["crypto"]["key"] = f"{chave_b64}"
     with open(f"{dados_dir}/chave.json", "w", encoding="utf-8") as cw:
         json.dump(chave, cw, indent=4, ensure_ascii=False)
 
@@ -106,7 +114,9 @@ def gerar_chave():
     # print(crypto.chave, " Valor da chave")
 
     if chave_leitura == "":
-        gravar_chave(crypto.gerar_chave())
+        chave_demontada = embaralhar(crypto.gerar_chave(), desmontar_chave)
+        gravar_chave(chave_demontada)
+        #gravar_chave(crypto.gerar_chave())
 
 def ler_dados(dados):
     with open(f"{dados_dir}/config.json", "r", encoding="utf-8") as d:
@@ -116,7 +126,7 @@ def ler_dados(dados):
     cliente = config["database"]["cliente"]
     email = config["database"]["email"]
     if not config["database"]["senhaemail"] == "":
-        senha = crypto.recuperar_senha(open_key(), config["database"]["senhaemail"])
+        senha = crypto.recuperar_cripto(open_key(), config["database"]["senhaemail"])
     else:
         senha = ""
     caminho = config["database"]["caminhopasta"]
@@ -128,8 +138,12 @@ def ler_dados(dados):
     segundo_sis_pasta = config["database"]["segundo_sis_pasta"]
     sistema_emissor = config["database"]["sistema_emissor"]
     modoenvio = config["database"]["modoenvio"]
-    telegrambot = config["database"]["telegrambot"]
-    chat_id = config["database"]["chat_id"]
+    if not config["database"]["telegrambot"] == "":
+        telegrambot = crypto.recuperar_cripto(open_key(), config["database"]["telegrambot"])
+        chat_id = crypto.recuperar_cripto(open_key(),  config["database"]["chat_id"])
+    else:
+        telegrambot = ""
+        chat_id = ""
 
     dia = config["database"]["dia"]
     executado_str = config["database"]["executado"]  # exemplo: "False"

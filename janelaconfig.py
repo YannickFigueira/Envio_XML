@@ -338,8 +338,6 @@ def iniciar_janela(version, repo):
         text_area.insert("1.0", "\n".join(metodos.dados.ler_dados('emailsparaenvio')))
 
     carregar_dados()
-    metodos.log_mensagem("remover senha")
-    #entrada_senha.insert(0, "senha")
 
     # Carregar ícone (use um PNG)
     image = Image.open("imagens/xml.png")
@@ -367,7 +365,7 @@ def iniciar_janela(version, repo):
 
     ### Desenvolvimento
     entrada_email.config(state="disabled")
-    #entrada_senha.config(state="disabled")
+    entrada_senha.config(state="disabled")
     text_area.config(state="disabled")
 
     transferarea.ClipboardMenu(root, entrada_caminho)

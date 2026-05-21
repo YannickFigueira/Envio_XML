@@ -1,7 +1,6 @@
 import xml.etree.ElementTree as Et
 import glob
 
-import metodos
 import relatorio
 
 def ler_dados_notas(caminho, nfce, dados):
@@ -48,7 +47,7 @@ def ler_dados_notas(caminho, nfce, dados):
         for elem in root.findall(".//nfe:mod", ns):
             try:
                 # soma_valores += float(elem.text)
-                modelo = int(elem.text)
+                modelo = int(str(elem.text))
                 #print(modelo)
                 # print(qtd)
 
@@ -61,23 +60,24 @@ def ler_dados_notas(caminho, nfce, dados):
                 # Procurar a tag nNF dentro do namespace
                 for elem in root.findall(".//nfe:nNF", ns):
                     try:
-                        match len(elem.text):
+                        texto_str = str(elem.text)
+                        match len(texto_str):
                             case 1:
-                                nota_danfe += "00000000" + elem.text + ","
+                                nota_danfe += "00000000" + texto_str + ","
                             case 2:
-                                nota_danfe += "0000000" + elem.text + ","
+                                nota_danfe += "0000000" + texto_str + ","
                             case 3:
-                                nota_danfe += "000000" + elem.text + ","
+                                nota_danfe += "000000" + texto_str + ","
                             case 4:
-                                nota_danfe += "00000" + elem.text + ","
+                                nota_danfe += "00000" + texto_str + ","
                             case 5:
-                                nota_danfe += "0000" + elem.text + ","
+                                nota_danfe += "0000" + texto_str + ","
                             case 6:
-                                nota_danfe += "000" + elem.text + ","
+                                nota_danfe += "000" + texto_str + ","
                             case 7:
-                                nota_danfe += "00" + elem.text + ","
+                                nota_danfe += "00" + texto_str + ","
                             case 8:
-                                nota_danfe += "0" + elem.text + ","
+                                nota_danfe += "0" + texto_str + ","
                             case _:
                                 nota_danfe += elem.text + ","
                     except (TypeError, ValueError):
@@ -86,7 +86,7 @@ def ler_dados_notas(caminho, nfce, dados):
                 # Procurar a tag serie dentro do namespace
                 for elem in root.findall(".//nfe:serie", ns):
                     try:
-                        serie += "00" + elem.text + ","
+                        serie += "00" + str(elem.text) + ","
                     except (TypeError, ValueError):
                         pass
 
@@ -124,18 +124,18 @@ def ler_dados_notas(caminho, nfce, dados):
                         if total is not None:
                             xprod_total = total.find(".//nfe:vProd", ns)
                             valor_produto_danfe += xprod_total.text + ","
-                            soma_valores_danfe += float(xprod_total.text)
+                            soma_valores_danfe += float(str(xprod_total.text))
 
                             vfrete_total = total.find(".//nfe:vFrete", ns)
                             valor_frete_danfe += vfrete_total.text + ","
 
                             vdesc_total = total.find(".//nfe:vDesc", ns)
                             valor_desc_danfe += vdesc_total.text + ","
-                            soma_desc_danfe += float(vdesc_total.text)
+                            soma_desc_danfe += float(str(vdesc_total.text))
 
                             nota_total = total.find(".//nfe:vNF", ns)
                             valor_nota_danfe += nota_total.text + ","
-                            soma_total_danfe += float(nota_total.text)
+                            soma_total_danfe += float(str(nota_total.text))
 
                     except (TypeError, ValueError):
                         pass
@@ -188,8 +188,8 @@ def ler_dados_notas(caminho, nfce, dados):
                 # Procurar a tag vUnCom dentro do namespace
                 for elem in root.findall(".//nfe:vUnCom", ns):
                     try:
-                        soma_valores_nota = str(float(elem.text) * float(valor_qtd[index_nfce]))
-                        valor_unidade += str(float(elem.text)) + ","
+                        soma_valores_nota = str(float(str(elem.text)) * float(valor_qtd[index_nfce]))
+                        valor_unidade += str(float(str(elem.text))) + ","
                         valor_total_notas += soma_valores_nota + ","
                         index_nfce += 1
                         conta_nota += 1
@@ -204,7 +204,7 @@ def ler_dados_notas(caminho, nfce, dados):
                 # Procurar a tag vNF dentro do namespace
                 for elem in root.findall(".//nfe:vNF", ns):
                     try:
-                        soma_valores += float(elem.text)
+                        soma_valores += float(str(elem.text))
                     except (TypeError, ValueError):
                         pass
 
