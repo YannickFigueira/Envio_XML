@@ -22,7 +22,7 @@ def enviar_arquivo(token, chat_id, caminho):
             await bot.send_document(chat_id=chat_id, document=f)
 
     asyncio.run(enviar_xmls())
-    metodos.log_mensagem("Ativar envio do arquivo")
+    #metodos.log_mensagem("Ativar envio do arquivo")
 
 def enviar_mensagem(token, chat_id, mensagem):
     # Criar instância do bot
