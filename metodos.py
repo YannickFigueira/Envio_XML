@@ -49,9 +49,9 @@ elif system == 'Windows':
         format="%(asctime)s - %(levelname)s - %(message)s"
     )
 
-def copiar_xmls(origem, destino_dir, cliente, mes_desejado, ano_desejado):
+def copiar_xmls(origem, destino_dir, cliente, mes_desejado, ano_desejado, sistema_emissor):
     destino_compactar = ""
-    if origem == smallsoft:
+    if sistema_emissor == "SmallSoft":
         dir_nfce = f"\\nfce"
     else:
         dir_nfce = ""
@@ -90,7 +90,7 @@ def copiar_xmls(origem, destino_dir, cliente, mes_desejado, ano_desejado):
         return False
 
 resultado = {}
-def compactar(origem, destino_zip, mes_desejado, ano_desejado, out):
+def compactar(origem, destino_zip, mes_desejado, ano_desejado, filial, out):
     mes = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
 
     if not origem == "":
@@ -98,9 +98,9 @@ def compactar(origem, destino_zip, mes_desejado, ano_desejado, out):
         if pasta_origem.is_dir() or pasta_origem.is_file():
             if not destino_zip == "":
                 if system == 'Linux':
-                    destino_zip = f"{destino_zip}/{ano_desejado}_{mes[mes_desejado - 1]}_{dados.ler_dados('cliente')}.zip"
+                    destino_zip = f"{destino_zip}/{ano_desejado}_{mes[mes_desejado - 1]}_{dados.ler_dados('cliente')}{filial}.zip"
                 elif system == 'Windows':
-                    destino_zip = f"{destino_zip}\\{ano_desejado}_{mes[mes_desejado - 1]}_{dados.ler_dados('cliente')}.zip"
+                    destino_zip = f"{destino_zip}\\{ano_desejado}_{mes[mes_desejado - 1]}_{dados.ler_dados('cliente')}{filial}.zip"
                 # Cria o arquivo ZIP no destino
 
                 with zipfile.ZipFile(destino_zip, 'w', zipfile.ZIP_DEFLATED) as zipf:
@@ -171,13 +171,16 @@ def verificar_sistema(sistema_emissor):
 def iniciar_compactacao(origem,
                         destino_zip,
                         mes_desejado,
-                        ano_desejado):
+                        ano_desejado,
+                        filial):
     t = threading.Thread(
         target=compactar,
         args=(origem,
               destino_zip,
               mes_desejado,
-              ano_desejado, resultado),
+              ano_desejado,
+              filial,
+              resultado),
         daemon=True
     )
     t.start()
@@ -186,7 +189,7 @@ def iniciar_compactacao(origem,
 
 dados.gerar_chave()
 
-def gravar_dados(cliente, email, senha, pasta, emails, modoenvio, sistema_emissor):
+def gravar_config(cliente, email, senha, pasta, emails, modoenvio, sistema_emissor, chk_relatorio, chk_segundo_sis, segundo_sistema):
     entrada = ""
     if platform.system() == "Windows":
         entrada = str(pasta).replace("/", "\\")
@@ -205,6 +208,9 @@ def gravar_dados(cliente, email, senha, pasta, emails, modoenvio, sistema_emisso
         dados.gravar_dados("emailsparaenvio", emails)
         dados.gravar_dados("modoenvio", modoenvio)
         dados.gravar_dados("sistema_emissor", sistema_emissor)
+        dados.gravar_dados("relatorio", str(chk_relatorio))
+        dados.gravar_dados("segundo_sistema", str(chk_segundo_sis))
+        dados.gravar_dados("segundo_sis_pasta", segundo_sistema)
         if dados.ler_dados('telegrambot') == "":
             #token, chat_id = telegrambot.janela_telegram()
             messagebox.showinfo("Telegram", "Selecione o arquivo de configuração do Telegram")

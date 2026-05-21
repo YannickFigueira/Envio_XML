@@ -13,6 +13,7 @@
 - Modificado janela de reenvio para usar botão combo
 - Janela reenvio agora bloqueia a janela principal
 - Adicionado opção para um segundo sistema
+- Configurado funcionamento para envio do arquivo da filial
 
 ### Fixed
 - Ajustado para vir com o sistema configurado selecionado

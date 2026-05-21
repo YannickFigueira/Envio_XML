@@ -57,8 +57,6 @@ def iniciar_janela(version, repo):
         else:
             mes_desejado -= 1
 
-
-
         caminho_danfe = f"{metodos.dados.ler_dados('caminho')}"
         caminho_nfce = ""
         if metodos.dados.ler_dados('sistema_emissor') == "SmallSoft":
@@ -68,33 +66,54 @@ def iniciar_janela(version, repo):
             caminho_danfe = f"{metodos.dados.ler_dados('caminho')}\\docs"
             caminho_nfce = ""
 
-        # Nota DANFE
-        encontrado_notas = metodos.copiar_xmls(caminho_danfe, destino_dir,
-                                      metodos.dados.ler_dados('cliente'), mes_desejado, ano_desejado)
-        if encontrado_notas:
-            if checkbox_relatorio.get():
-                origem_separada = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{metodos.dados.ler_dados('cliente')}\\notas"
-                destino_separada = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{metodos.dados.ler_dados('cliente')}\\canceladas"
-                separarcancelada.separar_notas(origem_separada, destino_separada)
+        contador = 1
+        filial = ["", "_filial"]
+        if metodos.dados.ler_dados('segundo_sistema'):
+            contador = 2
 
-                xmlreadnota.ler_dados_notas(f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{metodos.dados.ler_dados('cliente')}", "", metodos.dados)
 
-        # Nota NFCE
-        path = Path(caminho_nfce)
-        if path.exists() and caminho_nfce != "":
-            encontrado_notas = metodos.copiar_xmls(caminho_nfce, destino_dir,
-                                      metodos.dados.ler_dados('cliente'), mes_desejado, ano_desejado)
+        for i in range(contador):
+            # Nota DANFE
+            encontrado_notas = metodos.copiar_xmls(caminho_danfe,
+                                                    destino_dir,
+                                                   f"{metodos.dados.ler_dados('cliente')}{filial[i]}",
+                                                    mes_desejado,
+                                                    ano_desejado,
+                                                    metodos.dados.ler_dados('sistema_emissor'))
             if encontrado_notas:
                 if checkbox_relatorio.get():
-                    xmlreadnota.ler_dados_notas(f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{metodos.dados.ler_dados('cliente')}", "/NFCE/", metodos.dados)
+                    origem_separada = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{metodos.dados.ler_dados('cliente')}{filial[i]}\\notas"
+                    destino_separada = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{metodos.dados.ler_dados('cliente')}{filial[i]}\\canceladas"
+                    separarcancelada.separar_notas(origem_separada, destino_separada)
 
-        destino_zip = metodos.iniciar_compactacao(f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{metodos.dados.ler_dados('cliente')}", destino_dir, mes_desejado, ano_desejado)
-        if metodos.dados.ler_dados('modoenvio') == "Telegram" and encontrado_notas:
-            telegrambot.enviar_arquivo(metodos.dados.ler_dados('telegrambot'), metodos.dados.ler_dados('chat_id'), destino_zip)
-            #metodos.enviar_email()
-        else:
-            if modo_envio_cb["values"][0] == "Telegram":
-                telegrambot.enviar_mensagem(metodos.dados.ler_dados('telegrambot'), metodos.dados.ler_dados('chat_id'),f"{ano_desejado} - {mes_str[mes_desejado - 1]} - {metodos.dados.ler_dados('cliente')}\nNenhum XML gerado")
+                    xmlreadnota.ler_dados_notas(f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{metodos.dados.ler_dados('cliente')}{filial[i]}", "", metodos.dados)
+
+            # Nota NFCE
+            path = Path(caminho_nfce)
+            if path.exists() and caminho_nfce != "":
+                encontrado_notas = metodos.copiar_xmls(caminho_nfce,
+                                                        destino_dir,
+                                                        f"{metodos.dados.ler_dados('cliente')}{filial[i]}",
+                                                        mes_desejado,
+                                                        ano_desejado,
+                                                        metodos.dados.ler_dados('sistema_emissor'))
+                if encontrado_notas:
+                    if checkbox_relatorio.get():
+                        xmlreadnota.ler_dados_notas(f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{metodos.dados.ler_dados('cliente')}{filial[i]}", "/NFCE/", metodos.dados)
+
+            destino_zip = metodos.iniciar_compactacao(f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{metodos.dados.ler_dados('cliente')}{filial[i]}",
+                                                      destino_dir,
+                                                      mes_desejado,
+                                                      ano_desejado,
+                                                      filial[i])
+
+            # Envio do Telegram
+            if metodos.dados.ler_dados('modoenvio') == "Telegram" and encontrado_notas:
+                telegrambot.enviar_arquivo(metodos.dados.ler_dados('telegrambot'), metodos.dados.ler_dados('chat_id'), destino_zip)
+                #metodos.enviar_email()
+            else:
+                if modo_envio_cb["values"][0] == "Telegram":
+                    telegrambot.enviar_mensagem(metodos.dados.ler_dados('telegrambot'), metodos.dados.ler_dados('chat_id'),f"{ano_desejado} - {mes_str[mes_desejado - 1]} - {metodos.dados.ler_dados('cliente')}\nNenhum XML gerado")
 
         metodos.dados.gravar_dados("executado", "True")
 
@@ -172,7 +191,7 @@ def iniciar_janela(version, repo):
         btn_executar.grid(row=linha_reenviar, column=0, columnspan=4, padx=pad_x, pady=pad_y, sticky="we")
 
         def renviar_xmls():
-            preparar_xmls(int(ent_mes.current()) + 1, int(ent_ano.get()))
+            preparar_xmls(int(ent_mes.current()) + 2, int(ent_ano.get()))
             messagebox.showinfo("Concluído", "XML preparado e enviado com sucesso!")
             alterar.destroy()
 
@@ -228,7 +247,8 @@ def iniciar_janela(version, repo):
     label_senha = ttk.Label(root, text="senha:")
     label_senha.grid(row=linha, column=2, padx=pad_x, pady=pad_y, sticky="w")
 
-    entrada_senha = ttk.Entry(root, width=15, show="*")
+    #entrada_senha = ttk.Entry(root, width=15, show="*")
+    entrada_senha = ttk.Entry(root, width=15)
     entrada_senha.grid(row=linha, column=3, padx=pad_x, pady=pad_y, sticky="we")
     linha += 1
 
@@ -284,15 +304,25 @@ def iniciar_janela(version, repo):
     text_area.grid(row=linha, column=0, columnspan=4, padx=pad_x, pady=pad_y, sticky="we")
     linha += 1
     button_gravar = ttk.Button(root, text="Gravar",
-                               command = lambda: executar_acao(metodos.gravar_dados(entrada_cliente.get(),
-                                                                                            entrada_email.get(),
-                                                                                            entrada_senha.get(),
-                                                                                            entrada_caminho.get(),
-                                                                                            text_area.get("1.0", tk.END),
-                                                                                                          modo_envio_cb.get(),
-                                                                                                          sistema_cb.get())))
+                               command = lambda: gravar_config())
     button_gravar.grid(row=linha, column=0, columnspan=4, padx=pad_x, pady=pad_y, sticky="we")
     linha += 1
+
+    def gravar_config():
+        segundo_sistema = ""
+        if checkbox_sistema.get():
+            segundo_sistema = metodos.selecionar_pasta()
+
+        executar_acao(metodos.gravar_config(entrada_cliente.get(),
+                                           entrada_email.get(),
+                                           entrada_senha.get(),
+                                           entrada_caminho.get(),
+                                           text_area.get("1.0", tk.END),
+                                           modo_envio_cb.get(),
+                                           sistema_cb.get(),
+                                           checkbox_relatorio.get(),
+                                           checkbox_sistema.get(),
+                                           segundo_sistema))
 
     # Inicialização
     def carregar_dados():
@@ -308,6 +338,8 @@ def iniciar_janela(version, repo):
         text_area.insert("1.0", "\n".join(metodos.dados.ler_dados('emailsparaenvio')))
 
     carregar_dados()
+    metodos.log_mensagem("remover senha")
+    #entrada_senha.insert(0, "senha")
 
     # Carregar ícone (use um PNG)
     image = Image.open("imagens/xml.png")
@@ -335,7 +367,7 @@ def iniciar_janela(version, repo):
 
     ### Desenvolvimento
     entrada_email.config(state="disabled")
-    entrada_senha.config(state="disabled")
+    #entrada_senha.config(state="disabled")
     text_area.config(state="disabled")
 
     transferarea.ClipboardMenu(root, entrada_caminho)

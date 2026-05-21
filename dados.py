@@ -39,6 +39,7 @@ dados_config = {
         "ultima_nota_nfce": "",
         "relatorio": "True",
         "segundo_sistema": "False",
+        "segundo_sis_pasta": "",
         "modoenvio": "Telegram",
         "telegrambot": "",
         "chat_id": ""
@@ -105,7 +106,7 @@ def gerar_chave():
     # print(crypto.chave, " Valor da chave")
 
     if chave_leitura == "":
-        gravar_chave(crypto.pegar_chave())
+        gravar_chave(crypto.gerar_chave())
 
 def ler_dados(dados):
     with open(f"{dados_dir}/config.json", "r", encoding="utf-8") as d:
@@ -124,6 +125,7 @@ def ler_dados(dados):
     relatorio = relatorio_str.strip().lower() == "true"
     segundo_sis_str = config["database"]["segundo_sistema"]
     segundo_sis = segundo_sis_str.strip().lower() == "true"
+    segundo_sis_pasta = config["database"]["segundo_sis_pasta"]
     sistema_emissor = config["database"]["sistema_emissor"]
     modoenvio = config["database"]["modoenvio"]
     telegrambot = config["database"]["telegrambot"]
@@ -149,6 +151,8 @@ def ler_dados(dados):
         return segundo_sis
     elif dados == "sistema_emissor":
         return sistema_emissor
+    elif dados == "segundo_sis_pasta":
+        return segundo_sis_pasta
     elif dados == "modoenvio":
         return modoenvio
     elif dados == "telegrambot":
