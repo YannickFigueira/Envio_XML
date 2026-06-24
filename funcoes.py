@@ -1,12 +1,40 @@
 import inspect
+import logging
 import os
-import platform
+import shutil
 import sys
+import threading
 import tkinter as tk
+import zipfile
+from datetime import datetime
 from pathlib import Path
+from platform import system
 from tkinter import messagebox, filedialog
 
 import dados
+import separarcancelada
+import telegrambot
+import xmlreadnota
+
+# --- Variáveis globais ---
+agora = datetime.now()
+dia = agora.strftime("%d")
+mes = agora.strftime("%m")
+ano = agora.strftime("%Y")
+
+resultado = {}
+
+mes_str = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro",
+               "Novembro", "Dezembro"]
+
+if system == "Windows":
+    destino_dir = "C:\\temp\\XMLs"
+    if not os.path.exists(destino_dir):
+        os.makedirs(destino_dir)
+elif system == "Linux":
+    destino_dir = "/tmp/XMLs"
+    if not os.path.exists(destino_dir):
+        os.makedirs(destino_dir)
 
 # --- Comandos gerais ---
 def verificar_sistema(sistema_emissor):
@@ -85,7 +113,7 @@ def carregar_texto(arquivo):
 
     return telegram_token[1], telegram_chat_id[1]
 
-
+# --- Inicio da classe Funções
 class Funcoes:
     def __init__(self, view):
         self.view = view
@@ -137,9 +165,9 @@ class Funcoes:
             segundo_sistema = selecionar_pasta()
 
         entrada = ""
-        if platform.system() == "Windows":
+        if system == "Windows":
             entrada = str(pasta).replace("/", "\\")
-        elif platform.system() == "Linux":
+        elif system == "Linux":
             entrada = str(pasta)
         else:
             log_mensagem("Sistema não suportado")
@@ -166,7 +194,176 @@ class Funcoes:
             resposta = messagebox.askyesno("Completo", "Dados gravados com sucesso!\nDeseja fazer a primeira execução?")
 
             if resposta:
-                preparar_xmls(int(mes), int(ano))
+                self.preparar_xmls(int(mes), int(ano))
         else:
             messagebox.showwarning("ERRO", "Pasta não existe!")
 
+    def preparar_xmls(self, mes_desejado, ano_desejado):
+        if mes_desejado == 1:
+            mes_desejado = 12
+            ano_desejado -= 1
+        else:
+            mes_desejado -= 1
+
+        caminho_danfe = f"{dados.ler_dados('caminho')}"
+        caminho_nfce = ""
+        if dados.ler_dados('sistema_emissor') == "SmallSoft":
+            caminho_danfe = f"{dados.ler_dados('caminho')}\\xmldestinatario"
+            caminho_nfce = f"{dados.ler_dados('caminho')}\\xmldestinatario\\NFCE"
+        elif dados.ler_dados('sistema_emissor') == "Comercial":
+            caminho_danfe = f"{dados.ler_dados('caminho')}\\docs"
+            caminho_nfce = ""
+
+        contador = 1
+        filial = ["", "_filial"]
+        if dados.ler_dados('segundo_sistema'):
+            contador = 2
+
+
+        for i in range(contador):
+            # Nota DANFE
+            encontrado_notas = self.copiar_xmls(caminho_danfe,
+                                                    destino_dir,
+                                                   f"{dados.ler_dados('cliente')}{filial[i]}",
+                                                    mes_desejado,
+                                                    ano_desejado,
+                                                    dados.ler_dados('sistema_emissor'))
+            if encontrado_notas:
+                if self.view.controles['checkbox_relatorio'].get():
+                    origem_separada = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{dados.ler_dados('cliente')}{filial[i]}\\notas"
+                    destino_separada = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{dados.ler_dados('cliente')}{filial[i]}\\canceladas"
+                    separarcancelada.separar_notas(origem_separada, destino_separada)
+
+                    xmlreadnota.ler_dados_notas(f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{dados.ler_dados('cliente')}{filial[i]}",
+                                                "", dados)
+
+            # Nota NFCE
+            path = Path(caminho_nfce)
+            if path.exists() and caminho_nfce != "":
+                encontrado_notas = self.copiar_xmls(caminho_nfce,
+                                                        destino_dir,
+                                                        f"{dados.ler_dados('cliente')}{filial[i]}",
+                                                        mes_desejado,
+                                                        ano_desejado,
+                                                        dados.ler_dados('sistema_emissor'))
+                if encontrado_notas:
+                    if self.view.controles['checkbox_relatorio'].get():
+                        xmlreadnota.ler_dados_notas(f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{dados.ler_dados('cliente')}{filial[i]}",
+                                                    "/NFCE/", dados)
+
+            destino_zip = self.iniciar_compactacao(f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{dados.ler_dados('cliente')}{filial[i]}",
+                                                      destino_dir,
+                                                      mes_desejado,
+                                                      ano_desejado,
+                                                      filial[i])
+
+            # Envio do Telegram
+            if dados.ler_dados('modoenvio') == "Telegram" and encontrado_notas:
+                telegrambot.enviar_arquivo(dados.ler_dados('telegrambot'), dados.ler_dados('chat_id'), destino_zip)
+                #metodos.enviar_email()
+            else:
+                if self.view.controles['modo_envio_cb']["values"][0] == "Telegram":
+                    telegrambot.enviar_mensagem(dados.ler_dados('telegrambot'), dados.ler_dados('chat_id'),f"{ano_desejado} - {mes_str[mes_desejado - 1]} - {dados.ler_dados('cliente')}\nNenhum XML gerado")
+
+        dados.gravar_dados("executado", "True")
+
+    def copiar_xmls(self, origem, destino_dir, cliente, mes_desejado, ano_desejado, sistema_emissor):
+        destino_compactar = ""
+        if sistema_emissor == "SmallSoft":
+            dir_nfce = f"\\nfce"
+        else:
+            dir_nfce = ""
+
+        if system == "Windows":
+            destino_compactar = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{cliente}"
+            destino_dir = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{cliente}\\notas{dir_nfce}"
+            if not os.path.exists(destino_dir):
+                os.makedirs(destino_dir)
+                if not os.path.exists(f"{destino_compactar}\\relatorio"): os.makedirs(f"{destino_compactar}\\relatorio")
+        elif system == "Linux":
+            destino_compactar = f"{destino_dir}/{ano_desejado}_{mes_desejado}_{cliente}"
+            destino_dir = f"{destino_dir}/{ano_desejado}_{mes_desejado}_{cliente}/notas"
+            if not os.path.exists(destino_dir):
+                os.makedirs(destino_dir)
+                if not os.path.exists(f"{destino_compactar}/relatorio"): os.makedirs(f"{destino_compactar}/relatorio")
+
+        qtd_arquivos = False
+        for arquivo in os.listdir(origem):
+            caminho_arquivo = os.path.join(origem, arquivo)
+
+            if os.path.isfile(caminho_arquivo):
+                # Obter data de criação
+                timestamp_modificacao = os.path.getmtime(caminho_arquivo)
+                data_modificacao = datetime.fromtimestamp(timestamp_modificacao)
+
+                # Verificar se o arquivo pertence ao mês/ano desejado
+                if data_modificacao.month == mes_desejado and data_modificacao.year == ano_desejado:
+                    qtd_arquivos = True
+                    shutil.copy2(caminho_arquivo, destino_dir)
+
+        if qtd_arquivos:
+            return qtd_arquivos
+        else:
+            shutil.rmtree(destino_compactar)
+            return False
+
+    # --- Inicia a compactação --- #
+    def iniciar_compactacao(self, origem,
+                            destino_zip,
+                            mes_desejado,
+                            ano_desejado,
+                            filial):
+        t = threading.Thread(
+            target=self.compactar,
+            args=(origem,
+                  destino_zip,
+                  mes_desejado,
+                  ano_desejado,
+                  filial,
+                  resultado),
+            daemon=True
+        )
+        t.start()
+        t.join()
+        return resultado["arquivo"]
+
+    def compactar(self, origem, destino_zip, mes_desejado, ano_desejado, filial, out):
+        if not origem == "":
+            pasta_origem = Path(origem)
+            if pasta_origem.is_dir() or pasta_origem.is_file():
+                if not destino_zip == "":
+                    if system == 'Linux':
+                        destino_zip = f"{destino_zip}/{ano_desejado}_{mes_str[mes_desejado - 1]}_{dados.ler_dados('cliente')}{filial}.zip"
+                    elif system == 'Windows':
+                        destino_zip = f"{destino_zip}\\{ano_desejado}_{mes_str[mes_desejado - 1]}_{dados.ler_dados('cliente')}{filial}.zip"
+                    # Cria o arquivo ZIP no destino
+
+                    with zipfile.ZipFile(destino_zip, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                        # Percorre todos os arquivos da pasta de origem
+                        contador = 0
+                        # Conta todos os arquivos dentro da pasta origem
+                        # total = sum(len(arquivos) for _, _, arquivos in os.walk(origem))
+
+                        for raiz, _, arquivos in os.walk(origem):
+                            for arquivo in arquivos:
+
+                                try:
+                                    caminho_completo = Path(raiz) / arquivo
+                                    caminho_relativo = caminho_completo.relative_to(origem)
+                                    zipf.write(caminho_completo, caminho_relativo)
+
+                                    # atualizar_barra(contador, total, progress_canvas)
+                                    contador += 1
+                                except Exception as e:
+                                    logging.error(f"Erro ao compactar {caminho_completo}: {e}")
+                    shutil.rmtree(origem)
+                    # atualizar_barra(total, total, progress_canvas)
+                    # messagebox.showinfo("Completo", "Finalizado com exito.")
+                # else:
+                # messagebox.showinfo("Verificar", "Digite algo ou selecione uma pasta.")
+            # else:
+            # messagebox.showinfo("Verificar", "Arquivo ou pasta inexistente")
+        # else:
+        # messagebox.showinfo("Verificar", "Digite algo ou selecione uma pasta")
+
+        out["arquivo"] = destino_zip
