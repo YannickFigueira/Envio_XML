@@ -4,7 +4,6 @@ from tkinter import ttk
 
 import dados
 
-
 class JanelaPrincipal:
     def __init__(self, janela_principal, repo, version, nome_programa):
         self.janela_principal = janela_principal
