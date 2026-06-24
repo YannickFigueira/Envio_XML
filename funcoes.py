@@ -280,6 +280,21 @@ class Funcoes:
         if int(dia) > 7:
             dados.gravar_dados("executado", "False")
 
+        # Inicialização
+        def carregar_dados():
+            self.view.controles['entrada_cliente'].delete(0, tk.END)
+            self.view.controles['entrada_cliente'].insert(0, dados.ler_dados('cliente'))
+            self.view.controles['entrada_email'].delete(0, tk.END)
+            self.view.controles['entrada_email'].insert(0, dados.ler_dados('email'))
+            self.view.controles['entrada_senha'].delete(0, tk.END)
+            self.view.controles['entrada_senha'].insert(0, dados.ler_dados('senha'))
+            self.view.controles['entrada_caminho'].delete(0, tk.END)
+            self.view.controles['entrada_caminho'].insert(0, dados.ler_dados('caminho'))
+            self.view.controles['text_area'].delete("1.0", tk.END)
+            self.view.controles['text_area'].insert("1.0", "\n".join(dados.ler_dados('emailsparaenvio')))
+
+        carregar_dados()
+
         # --- Controles do Menu ---
         # Manu config
         self.view.controles['menu_config'].add_command(label="Reenviar notas",
@@ -325,7 +340,7 @@ class Funcoes:
         elif sistema_emissor == "Comercial":
             resposta = messagebox.askyesno("Escolha",
                                            f"Sistema selecionado {sistema_emissor}\nQuer usar a pasta padrão")
-            caminho = "C:\\Comercial"
+            caminho = "C:\\Program Files (x86)\\Comercial"
 
         self.view.controles['entrada_caminho'].delete(0, "end")
         if resposta:
