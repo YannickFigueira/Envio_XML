@@ -2,6 +2,7 @@ import inspect
 import logging
 import os
 import shutil
+import subprocess
 import sys
 import threading
 import tkinter as tk
@@ -10,11 +11,12 @@ from datetime import datetime
 from pathlib import Path
 from platform import system
 from tkinter import messagebox, filedialog
+from PIL import Image
+from pystray import Icon, Menu, MenuItem
 
-import dados
-import separarcancelada
-import telegrambot
-import xmlreadnota
+# Módulos próprios
+import dados, estilo, separarcancelada, telegrambot, verificarversao, xmlreadnota
+from janela_alterar_dados import JanelaAlterarDados
 
 # --- Variáveis globais ---
 agora = datetime.now()
@@ -24,9 +26,6 @@ ano = agora.strftime("%Y")
 
 resultado = {}
 
-mes_str = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro",
-               "Novembro", "Dezembro"]
-
 if system == "Windows":
     destino_dir = "C:\\temp\\XMLs"
     if not os.path.exists(destino_dir):
@@ -35,6 +34,37 @@ elif system == "Linux":
     destino_dir = "/tmp/XMLs"
     if not os.path.exists(destino_dir):
         os.makedirs(destino_dir)
+# --- Comandos dos Menus da janela principal ---
+def abrir_janela_alterar_dados(janela_principal):
+    visual = JanelaAlterarDados(janela_principal)
+    logica = Funcoes(visual)
+
+def reset_telegram():
+    resposta = messagebox.askyesno("Verificar", "Deseja mesmo deletar os dados")
+
+    if resposta:
+        dados.gravar_dados("telegrambot", "")
+        dados.gravar_dados("chat_id", "")
+        messagebox.showinfo("Completo", "Dados apagados com sucesso!")
+
+def abrir_logs(): # Padronizar logs
+    if system == "Windows":
+        arquivo = "C:\\Programa Igreja\\doc\\CHANGELOG.md"
+        subprocess.run(["notepad", arquivo])
+    elif system == "Linux":
+        arquivo = "/usr/share/doc/programaigreja/CHANGELOG.md"
+        subprocess.run(["xdg-open", arquivo])  # ou "gedit"
+    else:
+        log_mensagem("Sistema não suportado")
+
+def visitar_site(title):
+    pagina = f"https://github.com/YannickFigueira"
+    resposta = messagebox.askyesno("Sobre", f"{title} v{estilo.VERSION}\n"
+                                            f"Deseja visitar a página\n"
+                                            f"Desenvolvedor YannickFigueira\n"
+                                            f"chronostimeinchain@gmail.com")
+    if resposta:
+        verificarversao.webbrowser.open(pagina)
 
 # --- Comandos gerais ---
 
@@ -123,9 +153,9 @@ def compactar(origem, destino_zip, mes_desejado, ano_desejado, filial, out):
         if pasta_origem.is_dir() or pasta_origem.is_file():
             if not destino_zip == "":
                 if system == 'Linux':
-                    destino_zip = f"{destino_zip}/{ano_desejado}_{mes_str[mes_desejado - 1]}_{dados.ler_dados('cliente')}{filial}.zip"
+                    destino_zip = f"{destino_zip}/{ano_desejado}_{estilo.MES_STR[mes_desejado - 1]}_{dados.ler_dados('cliente')}{filial}.zip"
                 elif system == 'Windows':
-                    destino_zip = f"{destino_zip}\\{ano_desejado}_{mes_str[mes_desejado - 1]}_{dados.ler_dados('cliente')}{filial}.zip"
+                    destino_zip = f"{destino_zip}\\{ano_desejado}_{estilo.MES_STR[mes_desejado - 1]}_{dados.ler_dados('cliente')}{filial}.zip"
                 # Cria o arquivo ZIP no destino
 
                 with zipfile.ZipFile(destino_zip, 'w', zipfile.ZIP_DEFLATED) as zipf:
@@ -220,26 +250,56 @@ def copiar_xmls(origem, cliente, mes_desejado, ano_desejado):
 class Funcoes:
     def __init__(self, view):
         self.view = view
-        self.repo = self.view.controles['var_repo'].get()
-        self.version = self.view.controles['var_version'].get()
-        self.programa_title = self.view.controles['var_title'].get()
+
+        # Carregar ícone (use um PNG)
+        image = Image.open("imagens/xml.png")
+
+        # Criar menu da bandeja
+        menu = Menu(
+            MenuItem("Configurações", self.restaurar_janela),
+            MenuItem("Fechar", self.fechar_programa)
+        )
+
+        # Criar ícone na bandeja
+        icon_tray = Icon("EnvioXML", image, "Envio XML", menu)
+
+        def run_icon():
+            icon_tray.run()
+
+        threading.Thread(target=run_icon, daemon=True).start()
 
         # O controlador se adapta automaticamente baseando-se em qual janela o chamou
         if hasattr(view, 'nome_janela'):
             if view.nome_janela == "janela-principal":
                 self._vincular_janela_principal()
+            elif view.nome_janela == "janela-alterar-dados":
+                self._vincular_janela_alterar_dados()
 
     def _vincular_janela_principal(self):
-        # --- Inicialização da janela principal
+        # --- Inicialização da janela principal ---
         if int(dia) > 7:
             dados.gravar_dados("executado", "False")
 
-        ## --- Controles da janela principal
-        #self.view.controles['janela_principal'].protocol("WM_DELETE_WINDOW", self.esconder_janela)
+        # --- Controles do Menu ---
+        # Manu config
+        self.view.controles['menu_config'].add_command(label="Reenviar notas",
+                                                       command=lambda: abrir_janela_alterar_dados(self.view.controles['janela_principal']))
+        self.view.controles['menu_config'].add_command(label="Resetar dados Telegram", command=lambda: reset_telegram())
+        # Menu ajuda
+        self.view.controles['menu_ajuda'].add_command(label="Verificar atualização",
+                               command=lambda: verificarversao.consultar_lancamento(estilo.REPO, estilo.VERSION))
+        self.view.controles['menu_ajuda'].add_command(label="Notas da versão", command=lambda: abrir_logs())
+        self.view.controles['menu_ajuda'].add_command(label="Sobre",
+                                                      command=lambda: visitar_site(self.view.controles['var_title'].get()))
+
+        # --- Controles da janela principal ---
+        self.view.controles['janela_principal'].protocol("WM_DELETE_WINDOW", self.esconder_janela)
         self.view.controles['sistema_cb'].set(dados.ler_dados('sistema_emissor'))
         self.view.controles['button_selecionar_origem'].config(command=lambda: self.verificar_sistema())
         self.view.controles['button_gravar'].config(command=lambda: self.gravar_config())
 
+    def _vincular_janela_alterar_dados(self):
+        self.view.controles['btn_executar'].config(command=lambda: self.reenviar_xmls())
 
     ### Configuração da janela
     def esconder_janela(self):
@@ -375,6 +435,12 @@ class Funcoes:
                 #metodos.enviar_email()
             else:
                 if self.view.controles['modo_envio_cb']["values"][0] == "Telegram":
-                    telegrambot.enviar_mensagem(dados.ler_dados('telegrambot'), dados.ler_dados('chat_id'),f"{ano_desejado} - {mes_str[mes_desejado - 1]} - {dados.ler_dados('cliente')}\nNenhum XML gerado")
+                    telegrambot.enviar_mensagem(dados.ler_dados('telegrambot'), dados.ler_dados('chat_id'),f"{ano_desejado} - {estilo.MES_STR[mes_desejado - 1]} - {dados.ler_dados('cliente')}\nNenhum XML gerado")
 
         dados.gravar_dados("executado", "True")
+    # Fim das configurações da janela principal
+    # Configurações da janela alterar dados
+    def reenviar_xmls(self):
+        self.preparar_xmls(int(self.view.controles['ent_mes'].current()) + 2, int(self.view.controles['ent_ano'].get()))
+        messagebox.showinfo("Concluído", "XML preparado e enviado com sucesso!")
+        self.view.controles['janela_alterar'].destroy()
