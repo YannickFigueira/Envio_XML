@@ -37,22 +37,6 @@ elif system == "Linux":
         os.makedirs(destino_dir)
 
 # --- Comandos gerais ---
-def verificar_sistema(sistema_emissor):
-    resposta = False
-    caminho = ""
-    if sistema_emissor == "SmallSoft":
-        resposta = messagebox.askyesno("Escolha",
-                                       f"Sistema selecionado {sistema_emissor}\nQuer usar a pasta padrão")
-        caminho = "C:\\Program Files (x86)\\SmallSoft\\Small Commerce"
-    elif sistema_emissor == "Comercial":
-        resposta = messagebox.askyesno("Escolha",
-                                       f"Sistema selecionado {sistema_emissor}\nQuer usar a pasta padrão")
-        caminho = "C:\\Comercial"
-
-    if resposta:
-        return caminho
-    else:
-        return selecionar_pasta()
 
 def selecionar_pasta():
     pasta = filedialog.askdirectory(title="Selecione uma pasta")
@@ -246,9 +230,14 @@ class Funcoes:
                 self._vincular_janela_principal()
 
     def _vincular_janela_principal(self):
+        # --- Inicialização da janela principal
+        if int(dia) > 7:
+            dados.gravar_dados("executado", "False")
+
+        ## --- Controles da janela principal
         #self.view.controles['janela_principal'].protocol("WM_DELETE_WINDOW", self.esconder_janela)
         self.view.controles['sistema_cb'].set(dados.ler_dados('sistema_emissor'))
-        self.view.controles['button_selecionar_origem'].config(command=lambda: self.gravar_caminho())
+        self.view.controles['button_selecionar_origem'].config(command=lambda: self.verificar_sistema())
         self.view.controles['button_gravar'].config(command=lambda: self.gravar_config())
 
 
@@ -264,17 +253,25 @@ class Funcoes:
         icon.stop()
         sys.exit()
 
+    # --- Manipulação dos dados
+    def verificar_sistema(self):
+        sistema_emissor = self.view.controles['sistema_cb'].get()
+        resposta = False
+        caminho = ""
+        if sistema_emissor == "SmallSoft":
+            resposta = messagebox.askyesno("Escolha",
+                                           f"Sistema selecionado {sistema_emissor}\nQuer usar a pasta padrão")
+            caminho = "C:\\Program Files (x86)\\SmallSoft\\Small Commerce"
+        elif sistema_emissor == "Comercial":
+            resposta = messagebox.askyesno("Escolha",
+                                           f"Sistema selecionado {sistema_emissor}\nQuer usar a pasta padrão")
+            caminho = "C:\\Comercial"
 
-    def gravar_caminho(self):
-        # 1. Busca o sistema selecionado no Combobox
-        sistema = self.view.controles['sistema_cb'].get()
-
-        # 2. Roda a sua lógica de verificação
-        caminho_verificado = verificar_sistema(sistema)
-
-        # 3. Limpa e insere no campo de entrada
         self.view.controles['entrada_caminho'].delete(0, "end")
-        self.view.controles['entrada_caminho'].insert(0, caminho_verificado)
+        if resposta:
+            self.view.controles['entrada_caminho'].insert(0, caminho)
+        else:
+            self.view.controles['entrada_caminho'].insert(0, selecionar_pasta())
 
     def gravar_config(self):
         pasta = self.view.controles['entrada_caminho'].get()
