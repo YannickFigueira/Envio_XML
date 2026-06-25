@@ -338,7 +338,7 @@ class Funcoes:
                                command=lambda: verificarversao.consultar_lancamento(estilo.REPO, estilo.VERSION))
         self.view.controles['menu_ajuda'].add_command(label="Notas da versão", command=lambda: abrir_logs())
         self.view.controles['menu_ajuda'].add_command(label="Sobre",
-                                                      command=lambda: visitar_site(self.view.controles['var_title'].get()))
+                                                      command=lambda: visitar_site())
 
         # --- Controles da janela principal ---
         self.view.controles['janela_principal'].protocol("WM_DELETE_WINDOW", self.esconder_janela)
