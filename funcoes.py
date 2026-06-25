@@ -66,17 +66,17 @@ def reset_telegram():
 
 def abrir_logs(): # Padronizar logs
     if system == "Windows":
-        arquivo = "C:\\Programa Igreja\\doc\\CHANGELOG.md"
+        arquivo = f"C:\\{estilo.NOME_PROGRAMA}\\doc\\CHANGELOG.md"
         subprocess.run(["notepad", arquivo])
     elif system == "Linux":
-        arquivo = "/usr/share/doc/programaigreja/CHANGELOG.md"
+        arquivo = f"/usr/share/doc/{estilo.NOME_PROGRAMA}/CHANGELOG.md"
         subprocess.run(["xdg-open", arquivo])  # ou "gedit"
     else:
         log_mensagem("Sistema não suportado")
 
-def visitar_site(title):
+def visitar_site():
     pagina = f"https://github.com/YannickFigueira"
-    resposta = messagebox.askyesno("Sobre", f"{title} {estilo.VERSION}\n"
+    resposta = messagebox.askyesno("Sobre", f"{estilo.NOME_PROGRAMA} {estilo.VERSION}\n"
                                             f"Deseja visitar a página\n"
                                             f"Desenvolvedor YannickFigueira\n"
                                             f"chronostimeinchain@gmail.com")

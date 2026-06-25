@@ -5,10 +5,8 @@ from funcoes import Funcoes
 from janela_config import JanelaPrincipal
 import estilo
 
-nome_programa = "Envio XML"
-
 # --- Configuração do CLI (Argparse) ---
-parser = argparse.ArgumentParser(prog=estilo.REPO, description=nome_programa)
+parser = argparse.ArgumentParser(prog=estilo.REPO, description=estilo.NOME_PROGRAMA)
 parser.add_argument("--version", action="version", version=f"%(prog)s {estilo.VERSION}")
 args = parser.parse_args()
 
@@ -18,7 +16,7 @@ if __name__ == "__main__":
     root = tk.Tk()
 
     # 2. Cria a parte visual (passando o root e a versão)
-    visual = JanelaPrincipal(root, nome_programa)
+    visual = JanelaPrincipal(root)
 
     # 3. Passa a visão para a sua classe de Lógica controlar
     logica = Funcoes(visual)

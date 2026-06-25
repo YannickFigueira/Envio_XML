@@ -4,13 +4,15 @@ import os
 import crypto
 import base64
 
+import estilo
+
 desmontar_chave = 10 # Mudar para o número desejado
 
 # Dados iniciais
 dados_chave = {
     "app": {
-        "name": "EnvioXML",
-        "version": "4.0.0"
+        "name": "Envio XML",
+        "version": f"{estilo.VERSION}"
     },
     "crypto": {
         "key": ""
@@ -19,8 +21,8 @@ dados_chave = {
 
 dados_config = {
     "app": {
-        "name": "EnvioXML",
-        "version": "4.0.0"
+        "name": "Envio XML",
+        "version": f"{estilo.VERSION}"
     },
     "database": {
         "cliente": "cliente",

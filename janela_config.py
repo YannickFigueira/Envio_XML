@@ -5,27 +5,26 @@ from tkinter import ttk
 import dados, estilo
 
 class JanelaPrincipal:
-    def __init__(self, janela_principal, nome_programa):
+    def __init__(self, janela_principal):
         self.janela_principal = janela_principal
-        self.janela_principal.title(f"{nome_programa} {estilo.VERSION}")
+        self.janela_principal.title(f"{estilo.NOME_PROGRAMA} {estilo.VERSION}")
         self.janela_principal.resizable(False, False)
 
         self.nome_janela = "janela-principal"  # Identificador para o seu controlador
         self.controles = {}
 
-        self._criar_layout(nome_programa)
+        self._criar_layout()
         self._criar_barra_menu()
 
-    def _criar_layout(self, nome_programa):
+    def _criar_layout(self):
         # --- Variáveis ---
-        self.controles['var_title'] = tk.StringVar(value=nome_programa)
         largura_entradas = 25
         linha = 0
 
         # --- Controles ---
         self.controles['janela_principal'] = self.janela_principal
 
-        self.janela_principal.title(f"{nome_programa} {estilo.VERSION}")
+        self.janela_principal.title(f"{estilo.NOME_PROGRAMA} {estilo.VERSION}")
         if platform.system() == "Windows":
             self.janela_principal.iconbitmap("imagens/xml.ico")
         elif platform.system() == "Linux":

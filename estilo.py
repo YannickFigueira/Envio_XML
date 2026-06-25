@@ -3,6 +3,7 @@
 # Versão e repositório
 VERSION = "v4.1.1rc2"
 REPO= "Envio_XML"
+NOME_PROGRAMA = "Envio XML"
 
 # Margens padrão para janelas e frames
 PADX_JANELA = 20
@@ -12,6 +13,8 @@ PADY_JANELA = 20
 PADX_COMPONENTE = 10
 PADY_COMPONENTE = 5
 
+# Arquivo de log
+ARQUIVO_ERRO = "copiar_arquivos.log"
 
 # Variáveis gerais
 # Caminho dos sistemas
