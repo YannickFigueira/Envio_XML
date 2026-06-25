@@ -61,7 +61,7 @@ class JanelaPrincipal:
         ttk.Label(self.janela_principal, text="Sistema emissor:").grid(row=linha, column=0, padx=estilo.PADX_COMPONENTE, pady=estilo.PADY_COMPONENTE, sticky="w")
         self.sistema_cb = ttk.Combobox(self.janela_principal, width=15, takefocus=False, state="readonly")
         self.sistema_cb.grid(row=linha, column=1, padx=estilo.PADX_COMPONENTE, pady=estilo.PADY_COMPONENTE, sticky="ew")
-        self.sistema_cb["values"] = ["SmallSoft", "Comercial", "Outro"]
+        self.sistema_cb["values"] = ["SmallSoft", "Comercial"]
         self.controles['sistema_cb'] = self.sistema_cb
 
         ttk.Label(self.janela_principal, text="Modo de envio:").grid(row=linha, column=2, padx=estilo.PADX_COMPONENTE, pady=estilo.PADY_COMPONENTE, sticky="w")
