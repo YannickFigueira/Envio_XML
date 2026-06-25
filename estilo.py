@@ -13,5 +13,10 @@ PADX_COMPONENTE = 10
 PADY_COMPONENTE = 5
 
 
+# Variáveis gerais
+# Caminho dos sistemas
+SMALL_COMMERCE = "C:\\Program Files (x86)\\SmallSoft\\Small Commerce"
+COMERCIAL = "C:\\Program Files (x86)\\Comercial"
+# Strings
 MES_STR = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro",
                "Novembro", "Dezembro"]
