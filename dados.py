@@ -67,13 +67,10 @@ with open(f"{dados_dir}/chave.json", "r", encoding="utf-8") as c:
     chave = json.load(c)
 
 def open_key():
-    valor_chave = chave["crypto"]["key"]
-    if not valor_chave == "":
-        chave_recuperada = base64.b64decode(valor_chave)
+    chave_crypto = chave["crypto"]["key"]
+    if not chave_crypto == "":
+        chave_recuperada = base64.b64decode(chave_crypto)
         chave_crypto = restaurar(chave_recuperada, desmontar_chave)
-    else:
-        chave_crypto = chave["crypto"]["key"]
-    # print(chave_crypto, "valor recuperado")
 
     return chave_crypto
 
@@ -114,8 +111,8 @@ def gerar_chave():
     # print(crypto.chave, " Valor da chave")
 
     if chave_leitura == "":
-        chave_demontada = embaralhar(crypto.gerar_chave(), desmontar_chave)
-        gravar_chave(chave_demontada)
+        chave_desmontada = embaralhar(crypto.gerar_chave(), desmontar_chave)
+        gravar_chave(chave_desmontada)
         #gravar_chave(crypto.gerar_chave())
 
 def ler_dados(dados):

@@ -1,0 +1,17 @@
+# estilo.py
+
+# Versão e repositório
+VERSION = "v4.1.1rc2"
+REPO= "Envio_XML"
+
+# Margens padrão para janelas e frames
+PADX_JANELA = 20
+PADY_JANELA = 20
+
+# Margens padrão para componentes menores (botões, inputs, labels)
+PADX_COMPONENTE = 10
+PADY_COMPONENTE = 5
+
+
+MES_STR = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro",
+               "Novembro", "Dezembro"]

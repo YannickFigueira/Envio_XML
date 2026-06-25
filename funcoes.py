@@ -1,30 +1,89 @@
 import inspect
+import logging
 import os
-import platform
+import shutil
+import subprocess
 import sys
+import threading
 import tkinter as tk
+import zipfile
+from datetime import datetime
 from pathlib import Path
+from platform import system
 from tkinter import messagebox, filedialog
+from PIL import Image
+from pystray import Icon, Menu, MenuItem
 
-import dados
+# Módulos próprios
+import dados, estilo, separarcancelada, telegrambot, verificarversao, xmlreadnota, transferarea
+from janela_alterar_dados import JanelaAlterarDados
 
-# --- Comandos gerais ---
-def verificar_sistema(sistema_emissor):
-    resposta = False
-    caminho = ""
-    if sistema_emissor == "SmallSoft":
-        resposta = messagebox.askyesno("Escolha",
-                                       f"Sistema selecionado {sistema_emissor}\nQuer usar a pasta padrão")
-        caminho = "C:\\Program Files (x86)\\SmallSoft\\Small Commerce"
-    elif sistema_emissor == "Comercial":
-        resposta = messagebox.askyesno("Escolha",
-                                       f"Sistema selecionado {sistema_emissor}\nQuer usar a pasta padrão")
-        caminho = "C:\\Comercial"
+# --- Registro de erros ---
+home_dir = os.path.expanduser('~')
+system = system()
+if system == 'Linux':
+    if not os.path.exists(f"{home_dir}/log"):
+        os.mkdir(f"{home_dir}/log")
+
+    logging.basicConfig(
+        filename=f"{home_dir}/log/envio_xml.log",        # nome do arquivo
+        level=logging.ERROR,         # nível de log
+        format="%(asctime)s - %(levelname)s - %(message)s")
+
+    destino_dir = "/tmp/XMLs"
+    if not os.path.exists(destino_dir):
+        os.makedirs(destino_dir)
+elif system == 'Windows':
+    if not os.path.exists(f"c:/temp"):
+        os.mkdir(f"c:/temp")
+
+    logging.basicConfig(
+        filename="c:/temp/envio_xml.log",  # nome do arquivo
+        level=logging.ERROR,  # nível de log
+        format="%(asctime)s - %(levelname)s - %(message)s")
+
+    destino_dir = "C:\\temp\\XMLs"
+    if not os.path.exists(destino_dir):
+        os.makedirs(destino_dir)
+
+# --- Variáveis globais ---
+agora = datetime.now()
+dia = agora.strftime("%d")
+mes = agora.strftime("%m")
+ano = agora.strftime("%Y")
+# --- Comandos dos Menus da janela principal ---
+def abrir_janela_alterar_dados(janela_principal):
+    visual = JanelaAlterarDados(janela_principal)
+    logica = Funcoes(visual)
+
+def reset_telegram():
+    resposta = messagebox.askyesno("Verificar", "Deseja mesmo deletar os dados")
 
     if resposta:
-        return caminho
+        dados.gravar_dados("telegrambot", "")
+        dados.gravar_dados("chat_id", "")
+        messagebox.showinfo("Completo", "Dados apagados com sucesso!")
+
+def abrir_logs(): # Padronizar logs
+    if system == "Windows":
+        arquivo = "C:\\Programa Igreja\\doc\\CHANGELOG.md"
+        subprocess.run(["notepad", arquivo])
+    elif system == "Linux":
+        arquivo = "/usr/share/doc/programaigreja/CHANGELOG.md"
+        subprocess.run(["xdg-open", arquivo])  # ou "gedit"
     else:
-        return selecionar_pasta()
+        log_mensagem("Sistema não suportado")
+
+def visitar_site(title):
+    pagina = f"https://github.com/YannickFigueira"
+    resposta = messagebox.askyesno("Sobre", f"{title} {estilo.VERSION}\n"
+                                            f"Deseja visitar a página\n"
+                                            f"Desenvolvedor YannickFigueira\n"
+                                            f"chronostimeinchain@gmail.com")
+    if resposta:
+        verificarversao.webbrowser.open(pagina)
+
+# --- Comandos gerais ---
 
 def selecionar_pasta():
     pasta = filedialog.askdirectory(title="Selecione uma pasta")
@@ -71,7 +130,6 @@ def selecionar_arquivo():
         return token, chat_id
 
 def carregar_texto(arquivo):
-
     if os.path.isfile(arquivo):
         with open(arquivo, "r", encoding="utf-8") as f:
             texto = f.read()
@@ -85,25 +143,211 @@ def carregar_texto(arquivo):
 
     return telegram_token[1], telegram_chat_id[1]
 
+# --- Inicia a compactação --- #
+resultado = {}
+def iniciar_compactacao(origem,
+                        destino_zip,
+                        mes_desejado,
+                        ano_desejado,
+                        filial):
+    t = threading.Thread(
+        target=compactar,
+        args=(origem,
+              destino_zip,
+              mes_desejado,
+              ano_desejado,
+              filial,
+              resultado),
+        daemon=True
+    )
+    t.start()
+    t.join()
+    return resultado["arquivo"]
+
+def compactar(origem, destino_zip, mes_desejado, ano_desejado, filial, out):
+    if not origem == "":
+        pasta_origem = Path(origem)
+        if pasta_origem.is_dir() or pasta_origem.is_file():
+            if not destino_zip == "":
+                if system == 'Linux':
+                    destino_zip = f"{destino_zip}/{ano_desejado}_{estilo.MES_STR[mes_desejado - 1]}_{dados.ler_dados('cliente')}{filial}.zip"
+                elif system == 'Windows':
+                    destino_zip = f"{destino_zip}\\{ano_desejado}_{estilo.MES_STR[mes_desejado - 1]}_{dados.ler_dados('cliente')}{filial}.zip"
+                # Cria o arquivo ZIP no destino
+
+                with zipfile.ZipFile(destino_zip, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                    # Percorre todos os arquivos da pasta de origem
+                    contador = 0
+                    # Conta todos os arquivos dentro da pasta origem
+                    # total = sum(len(arquivos) for _, _, arquivos in os.walk(origem))
+
+                    # Garante que 'origem' seja uma string se ela vier como bytes
+                    if isinstance(origem, bytes):
+                        origem = origem.decode('utf-8')  # ou 'latin-1' / 'cp1252' dependendo do seu SO
+
+                    for raiz, _, arquivos in os.walk(origem):
+                        for arquivo in arquivos:
+
+                            try:
+                                caminho_completo = Path(raiz) / arquivo
+                                caminho_relativo = caminho_completo.relative_to(origem)
+                                zipf.write(caminho_completo, caminho_relativo)
+
+                                # atualizar_barra(contador, total, progress_canvas)
+                                contador += 1
+                            except Exception as e:
+                                logging.error(f"Erro ao compactar {caminho_completo}: {e}")
+
+                shutil.rmtree(origem)
+                # atualizar_barra(total, total, progress_canvas)
+                # messagebox.showinfo("Completo", "Finalizado com exito.")
+            # else:
+            # messagebox.showinfo("Verificar", "Digite algo ou selecione uma pasta.")
+        # else:
+        # messagebox.showinfo("Verificar", "Arquivo ou pasta inexistente")
+    # else:
+    # messagebox.showinfo("Verificar", "Digite algo ou selecione uma pasta")
+
+    out["arquivo"] = destino_zip
+
+
+def copiar_xmls(origem, cliente, mes_desejado, ano_desejado):
+    global destino_dir_copia
+    destino_compactar = ""
+    if dados.ler_dados('sistema_emissor') == "SmallSoft":
+        dir_nfce = f"\\nfce"
+    else:
+        dir_nfce = ""
+
+    if system == "Windows":
+        destino_compactar = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{cliente}"
+        destino_dir_copia = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{cliente}\\notas{dir_nfce}"
+
+        if isinstance(destino_dir_copia, bytes):
+            destino_dir_copia = destino_dir_copia.decode('utf-8')
+
+        if not os.path.exists(destino_dir_copia):
+            os.makedirs(destino_dir_copia)
+            if not os.path.exists(f"{destino_compactar}\\relatorio"): os.makedirs(f"{destino_compactar}\\relatorio")
+    elif system == "Linux":
+        destino_compactar = f"{destino_dir}/{ano_desejado}_{mes_desejado}_{cliente}"
+        destino_dir_copia = f"{destino_dir}/{ano_desejado}_{mes_desejado}_{cliente}/notas"
+
+        if isinstance(destino_dir_copia, bytes):
+            destino_dir_copia = destino_dir_copia.decode('utf-8')
+
+        if not os.path.exists(destino_dir_copia):
+            os.makedirs(destino_dir_copia)
+            if not os.path.exists(f"{destino_compactar}/relatorio"): os.makedirs(f"{destino_compactar}/relatorio")
+
+    qtd_arquivos = False
+    for arquivo in os.listdir(origem):
+        caminho_arquivo = os.path.join(origem, arquivo)
+
+        if os.path.isfile(caminho_arquivo):
+            # Obter data de criação
+            timestamp_modificacao = os.path.getmtime(caminho_arquivo)
+            data_modificacao = datetime.fromtimestamp(timestamp_modificacao)
+
+            # Verificar se o arquivo pertence ao mês/ano desejado
+            if data_modificacao.month == mes_desejado and data_modificacao.year == ano_desejado:
+                if isinstance(caminho_arquivo, bytes):
+                    caminho_arquivo = caminho_arquivo.decode('utf-8')
+
+                qtd_arquivos = True
+                shutil.copy2(caminho_arquivo, destino_dir_copia)
+
+    if qtd_arquivos:
+        return qtd_arquivos
+    else:
+        shutil.rmtree(destino_compactar)
+        return False
+
 
 class Funcoes:
     def __init__(self, view):
         self.view = view
-        self.repo = self.view.controles['var_repo'].get()
-        self.version = self.view.controles['var_version'].get()
-        self.programa_title = self.view.controles['var_title'].get()
-
         # O controlador se adapta automaticamente baseando-se em qual janela o chamou
         if hasattr(view, 'nome_janela'):
             if view.nome_janela == "janela-principal":
                 self._vincular_janela_principal()
+            elif view.nome_janela == "janela-alterar-dados":
+                self._vincular_janela_alterar_dados()
 
     def _vincular_janela_principal(self):
-        #self.view.controles['janela_principal'].protocol("WM_DELETE_WINDOW", self.esconder_janela)
+        # --- Inicialização da janela principal ---
+        dados.gerar_chave() # Cria a chave crypto se não existir
+
+        if int(dia) > 7:
+            dados.gravar_dados("executado", "False")
+
+        if not dados.ler_dados('caminho') == "":
+            if not dados.ler_dados('executado') and int(dia) <= dados.ler_dados('dia'):
+                self.preparar_xmls(int(mes), int(ano))
+        else:
+            self.view.controles['janela_principal'].deiconify()
+
+        # Carregar ícone (use um PNG)
+        image = Image.open("imagens/xml.png")
+
+        # Criar menu da bandeja
+        menu = Menu(
+            MenuItem("Configurações", self.restaurar_janela),
+            MenuItem("Fechar", self.fechar_programa)
+        )
+
+        # Criar ícone na bandeja
+        icon_tray = Icon("EnvioXML", image, "Envio XML", menu)
+
+        def run_icon():
+            icon_tray.run()
+
+        threading.Thread(target=run_icon, daemon=True).start()
+
+        def carregar_dados():
+            self.view.controles['entrada_cliente'].delete(0, tk.END)
+            self.view.controles['entrada_cliente'].insert(0, dados.ler_dados('cliente'))
+            self.view.controles['entrada_email'].delete(0, tk.END)
+            self.view.controles['entrada_email'].insert(0, dados.ler_dados('email'))
+            self.view.controles['entrada_senha'].delete(0, tk.END)
+            self.view.controles['entrada_senha'].insert(0, dados.ler_dados('senha'))
+            self.view.controles['entrada_caminho'].delete(0, tk.END)
+            self.view.controles['entrada_caminho'].insert(0, dados.ler_dados('caminho'))
+            self.view.controles['text_area'].delete("1.0", tk.END)
+            self.view.controles['text_area'].insert("1.0", "\n".join(dados.ler_dados('emailsparaenvio')))
+
+        carregar_dados()
+
+        ### Desenvolvimento
+        self.view.controles['entrada_email'].config(state="disabled")
+        self.view.controles['entrada_senha'].config(state="disabled")
+        self.view.controles['text_area'].config(state="disabled")
+
+        transferarea.ClipboardMenu(self.view.controles['janela_principal'], self.view.controles['entrada_caminho'])
+        transferarea.ClipboardMenu(self.view.controles['janela_principal'], self.view.controles['entrada_cliente'])
+        transferarea.ClipboardMenu(self.view.controles['janela_principal'], self.view.controles['entrada_email'])
+        transferarea.ClipboardMenu(self.view.controles['janela_principal'], self.view.controles['entrada_senha'])
+
+        # --- Controles do Menu ---
+        # Manu config
+        self.view.controles['menu_config'].add_command(label="Reenviar notas",
+                                                       command=lambda: abrir_janela_alterar_dados(self.view.controles['janela_principal']))
+        self.view.controles['menu_config'].add_command(label="Resetar dados Telegram", command=lambda: reset_telegram())
+        # Menu ajuda
+        self.view.controles['menu_ajuda'].add_command(label="Verificar atualização",
+                               command=lambda: verificarversao.consultar_lancamento(estilo.REPO, estilo.VERSION))
+        self.view.controles['menu_ajuda'].add_command(label="Notas da versão", command=lambda: abrir_logs())
+        self.view.controles['menu_ajuda'].add_command(label="Sobre",
+                                                      command=lambda: visitar_site(self.view.controles['var_title'].get()))
+
+        # --- Controles da janela principal ---
+        self.view.controles['janela_principal'].protocol("WM_DELETE_WINDOW", self.esconder_janela)
         self.view.controles['sistema_cb'].set(dados.ler_dados('sistema_emissor'))
-        self.view.controles['button_selecionar_origem'].config(command=lambda: self.gravar_caminho())
+        self.view.controles['button_selecionar_origem'].config(command=lambda: self.verificar_sistema())
         self.view.controles['button_gravar'].config(command=lambda: self.gravar_config())
 
+    def _vincular_janela_alterar_dados(self):
+        self.view.controles['btn_executar'].config(command=lambda: self.reenviar_xmls())
 
     ### Configuração da janela
     def esconder_janela(self):
@@ -117,17 +361,25 @@ class Funcoes:
         icon.stop()
         sys.exit()
 
+    # --- Manipulação dos dados
+    def verificar_sistema(self):
+        sistema_emissor = self.view.controles['sistema_cb'].get()
+        resposta = False
+        caminho = ""
+        if sistema_emissor == "SmallSoft":
+            resposta = messagebox.askyesno("Escolha",
+                                           f"Sistema selecionado {sistema_emissor}\nQuer usar a pasta padrão")
+            caminho = "C:\\Program Files (x86)\\SmallSoft\\Small Commerce"
+        elif sistema_emissor == "Comercial":
+            resposta = messagebox.askyesno("Escolha",
+                                           f"Sistema selecionado {sistema_emissor}\nQuer usar a pasta padrão")
+            caminho = "C:\\Program Files (x86)\\Comercial"
 
-    def gravar_caminho(self):
-        # 1. Busca o sistema selecionado no Combobox
-        sistema = self.view.controles['sistema_cb'].get()
-
-        # 2. Roda a sua lógica de verificação
-        caminho_verificado = verificar_sistema(sistema)
-
-        # 3. Limpa e insere no campo de entrada
         self.view.controles['entrada_caminho'].delete(0, "end")
-        self.view.controles['entrada_caminho'].insert(0, caminho_verificado)
+        if resposta:
+            self.view.controles['entrada_caminho'].insert(0, caminho)
+        else:
+            self.view.controles['entrada_caminho'].insert(0, selecionar_pasta())
 
     def gravar_config(self):
         pasta = self.view.controles['entrada_caminho'].get()
@@ -137,9 +389,9 @@ class Funcoes:
             segundo_sistema = selecionar_pasta()
 
         entrada = ""
-        if platform.system() == "Windows":
+        if system == "Windows":
             entrada = str(pasta).replace("/", "\\")
-        elif platform.system() == "Linux":
+        elif system == "Linux":
             entrada = str(pasta)
         else:
             log_mensagem("Sistema não suportado")
@@ -166,7 +418,78 @@ class Funcoes:
             resposta = messagebox.askyesno("Completo", "Dados gravados com sucesso!\nDeseja fazer a primeira execução?")
 
             if resposta:
-                preparar_xmls(int(mes), int(ano))
+                self.preparar_xmls(int(mes), int(ano))
         else:
             messagebox.showwarning("ERRO", "Pasta não existe!")
 
+    def preparar_xmls(self, mes_desejado, ano_desejado):
+        if mes_desejado == 1:
+            mes_desejado = 12
+            ano_desejado -= 1
+        else:
+            mes_desejado -= 1
+
+        caminho_danfe = f"{dados.ler_dados('caminho')}"
+        caminho_nfce = ""
+        if dados.ler_dados('sistema_emissor') == "SmallSoft":
+            caminho_danfe = f"{dados.ler_dados('caminho')}\\xmldestinatario"
+            caminho_nfce = f"{dados.ler_dados('caminho')}\\xmldestinatario\\NFCE"
+        elif dados.ler_dados('sistema_emissor') == "Comercial":
+            caminho_danfe = f"{dados.ler_dados('caminho')}\\docs"
+            caminho_nfce = ""
+
+        contador = 1
+        filial = ["", "_filial"]
+        if dados.ler_dados('segundo_sistema'):
+            contador = 2
+
+        for i in range(contador):
+            # Nota DANFE
+            encontrado_notas = copiar_xmls(caminho_danfe,
+                                                   f"{dados.ler_dados('cliente')}{filial[i]}",
+                                                    mes_desejado,
+                                                    ano_desejado)
+            if encontrado_notas:
+                if dados.ler_dados('relatorio'):
+                    origem_separada = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{dados.ler_dados('cliente')}{filial[i]}\\notas"
+                    destino_separada = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{dados.ler_dados('cliente')}{filial[i]}\\canceladas"
+                    separarcancelada.separar_notas(origem_separada, destino_separada)
+
+                    xmlreadnota.ler_dados_notas(f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{dados.ler_dados('cliente')}{filial[i]}",
+                                                "")
+
+            # Nota NFCE
+            path = Path(caminho_nfce)
+            if path.exists() and caminho_nfce != "":
+                encontrado_notas = copiar_xmls(caminho_nfce,
+                                                        f"{dados.ler_dados('cliente')}{filial[i]}",
+                                                        mes_desejado,
+                                                        ano_desejado)
+                if encontrado_notas:
+                    if self.view.controles['checkbox_relatorio'].get():
+                        xmlreadnota.ler_dados_notas(
+                            f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{dados.ler_dados('cliente')}{filial[i]}",
+                                                    "/NFCE/")
+
+            destino_zip_envio = iniciar_compactacao(f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{dados.ler_dados('cliente')}{filial[i]}",
+                                                      destino_dir,
+                                                      mes_desejado,
+                                                      ano_desejado,
+                                                      filial[i])
+
+            # Envio do Telegram
+            if dados.ler_dados('modoenvio') == "Telegram" and encontrado_notas:
+                telegrambot.enviar_arquivo(dados.ler_dados('telegrambot'), dados.ler_dados('chat_id'), destino_zip_envio)
+                #metodos.enviar_email()
+            else:
+                if dados.ler_dados('modoenvio') == "Telegram":
+                    telegrambot.enviar_mensagem(dados.ler_dados('telegrambot'), dados.ler_dados('chat_id'),
+                                                f"{ano_desejado} - {estilo.MES_STR[mes_desejado - 1]} - {dados.ler_dados('cliente')}\nNenhum XML gerado")
+
+        dados.gravar_dados("executado", "True")
+    # Fim das configurações da janela principal
+    # Configurações da janela alterar dados
+    def reenviar_xmls(self):
+        self.preparar_xmls(int(self.view.controles['ent_mes'].current()) + 2, int(self.view.controles['ent_ano'].get()))
+        messagebox.showinfo("Concluído", "XML preparado e enviado com sucesso!")
+        self.view.controles['janela_alterar'].destroy()
