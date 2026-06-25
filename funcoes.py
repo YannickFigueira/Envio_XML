@@ -281,6 +281,8 @@ class Funcoes:
 
     def _vincular_janela_principal(self):
         # --- Inicialização da janela principal ---
+        dados.gerar_chave() # Cria a chave crypto se não existir
+
         if int(dia) > 7:
             dados.gravar_dados("executado", "False")
 
