@@ -287,6 +287,14 @@ class Funcoes:
         else:
             self.view.controles['janela_principal'].deiconify()
 
+        print("Teste início")
+        if Path(estilo.SMALL_COMMERCE).exists():
+            self.view.controles['sistema_cb'].current(0)
+        elif Path(estilo.COMERCIAL).exists():
+            self.view.controles['sistema_cb'].current(1)
+        else:
+            self.view.controles['sistema_cb'].current(0)
+
         # Carregar ícone (use um PNG)
         image = Image.open("imagens/xml.png")
 
