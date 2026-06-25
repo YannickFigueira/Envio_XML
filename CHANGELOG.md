@@ -20,3 +20,11 @@
 - Ajustado para vir com o sistema configurado selecionado
 - Corrigido janela de reenvio para não fechar o programa após a execução
 - Corrigido janela reenvio com o ícone do programa
+
+## [v4.1.1rc2] - 2026-06-24
+### Changes
+- Reescrito o código para melhor manutenção
+
+### Fixed
+- Feito pequenas correções e melhorias
+- Corrigido pasta padrão do sistema Comercial
