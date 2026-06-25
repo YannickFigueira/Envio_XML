@@ -319,6 +319,16 @@ class Funcoes:
 
         carregar_dados()
 
+        ### Desenvolvimento
+        self.view.controles['entrada_email'].config(state="disabled")
+        self.view.controles['entrada_senha'].config(state="disabled")
+        self.view.controles['text_area'].config(state="disabled")
+
+        transferarea.ClipboardMenu(self.view.controles['janela_principal'], self.view.controles['entrada_caminho'])
+        transferarea.ClipboardMenu(self.view.controles['janela_principal'], self.view.controles['entrada_cliente'])
+        transferarea.ClipboardMenu(self.view.controles['janela_principal'], self.view.controles['entrada_email'])
+        transferarea.ClipboardMenu(self.view.controles['janela_principal'], self.view.controles['entrada_senha'])
+
         # --- Controles do Menu ---
         # Manu config
         self.view.controles['menu_config'].add_command(label="Reenviar notas",
