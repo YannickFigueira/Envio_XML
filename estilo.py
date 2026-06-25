@@ -1,7 +1,7 @@
 # estilo.py
 
 # Versão e repositório
-VERSION = "4.1.1rc2"
+VERSION = "v4.1.1rc2"
 REPO= "Envio_XML"
 
 # Margens padrão para janelas e frames

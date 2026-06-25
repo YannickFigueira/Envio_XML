@@ -28,8 +28,11 @@ if system == 'Linux':
     logging.basicConfig(
         filename=f"{home_dir}/log/envio_xml.log",        # nome do arquivo
         level=logging.ERROR,         # nível de log
-        format="%(asctime)s - %(levelname)s - %(message)s"
-    )
+        format="%(asctime)s - %(levelname)s - %(message)s")
+
+    destino_dir = "/tmp/XMLs"
+    if not os.path.exists(destino_dir):
+        os.makedirs(destino_dir)
 elif system == 'Windows':
     if not os.path.exists(f"c:/temp"):
         os.mkdir(f"c:/temp")
@@ -37,25 +40,17 @@ elif system == 'Windows':
     logging.basicConfig(
         filename="c:/temp/envio_xml.log",  # nome do arquivo
         level=logging.ERROR,  # nível de log
-        format="%(asctime)s - %(levelname)s - %(message)s"
-    )
+        format="%(asctime)s - %(levelname)s - %(message)s")
+
+    destino_dir = "C:\\temp\\XMLs"
+    if not os.path.exists(destino_dir):
+        os.makedirs(destino_dir)
 
 # --- Variáveis globais ---
 agora = datetime.now()
 dia = agora.strftime("%d")
 mes = agora.strftime("%m")
 ano = agora.strftime("%Y")
-
-resultado = {}
-
-if system == "Windows":
-    destino_dir = "C:\\temp\\XMLs"
-    if not os.path.exists(destino_dir):
-        os.makedirs(destino_dir)
-elif system == "Linux":
-    destino_dir = "/tmp/XMLs"
-    if not os.path.exists(destino_dir):
-        os.makedirs(destino_dir)
 # --- Comandos dos Menus da janela principal ---
 def abrir_janela_alterar_dados(janela_principal):
     visual = JanelaAlterarDados(janela_principal)
@@ -81,7 +76,7 @@ def abrir_logs(): # Padronizar logs
 
 def visitar_site(title):
     pagina = f"https://github.com/YannickFigueira"
-    resposta = messagebox.askyesno("Sobre", f"{title} v{estilo.VERSION}\n"
+    resposta = messagebox.askyesno("Sobre", f"{title} {estilo.VERSION}\n"
                                             f"Deseja visitar a página\n"
                                             f"Desenvolvedor YannickFigueira\n"
                                             f"chronostimeinchain@gmail.com")
@@ -135,7 +130,6 @@ def selecionar_arquivo():
         return token, chat_id
 
 def carregar_texto(arquivo):
-
     if os.path.isfile(arquivo):
         with open(arquivo, "r", encoding="utf-8") as f:
             texto = f.read()
@@ -150,6 +144,7 @@ def carregar_texto(arquivo):
     return telegram_token[1], telegram_chat_id[1]
 
 # --- Inicia a compactação --- #
+resultado = {}
 def iniciar_compactacao(origem,
                         destino_zip,
                         mes_desejado,
@@ -286,7 +281,11 @@ class Funcoes:
         if int(dia) > 7:
             dados.gravar_dados("executado", "False")
 
-        # Inicialização
+        if not dados.ler_dados('caminho') == "":
+            if not dados.ler_dados('executado') and int(dia) <= dados.ler_dados('dia'):
+                self.preparar_xmls(int(mes), int(ano))
+        else:
+            self.view.controles['janela_principal'].deiconify()
 
         # Carregar ícone (use um PNG)
         image = Image.open("imagens/xml.png")
@@ -444,7 +443,6 @@ class Funcoes:
         if dados.ler_dados('segundo_sistema'):
             contador = 2
 
-
         for i in range(contador):
             # Nota DANFE
             encontrado_notas = copiar_xmls(caminho_danfe,
@@ -458,7 +456,7 @@ class Funcoes:
                     separarcancelada.separar_notas(origem_separada, destino_separada)
 
                     xmlreadnota.ler_dados_notas(f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{dados.ler_dados('cliente')}{filial[i]}",
-                                                "", dados)
+                                                "")
 
             # Nota NFCE
             path = Path(caminho_nfce)
@@ -469,8 +467,9 @@ class Funcoes:
                                                         ano_desejado)
                 if encontrado_notas:
                     if self.view.controles['checkbox_relatorio'].get():
-                        xmlreadnota.ler_dados_notas(f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{dados.ler_dados('cliente')}{filial[i]}",
-                                                    "/NFCE/", dados)
+                        xmlreadnota.ler_dados_notas(
+                            f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{dados.ler_dados('cliente')}{filial[i]}",
+                                                    "/NFCE/")
 
             destino_zip_envio = iniciar_compactacao(f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{dados.ler_dados('cliente')}{filial[i]}",
                                                       destino_dir,
@@ -484,7 +483,8 @@ class Funcoes:
                 #metodos.enviar_email()
             else:
                 if dados.ler_dados('modoenvio') == "Telegram":
-                    telegrambot.enviar_mensagem(dados.ler_dados('telegrambot'), dados.ler_dados('chat_id'),f"{ano_desejado} - {estilo.MES_STR[mes_desejado - 1]} - {dados.ler_dados('cliente')}\nNenhum XML gerado")
+                    telegrambot.enviar_mensagem(dados.ler_dados('telegrambot'), dados.ler_dados('chat_id'),
+                                                f"{ano_desejado} - {estilo.MES_STR[mes_desejado - 1]} - {dados.ler_dados('cliente')}\nNenhum XML gerado")
 
         dados.gravar_dados("executado", "True")
     # Fim das configurações da janela principal

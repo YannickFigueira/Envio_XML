@@ -111,8 +111,8 @@ def gerar_chave():
     # print(crypto.chave, " Valor da chave")
 
     if chave_leitura == "":
-        chave_demontada = embaralhar(crypto.gerar_chave(), desmontar_chave)
-        gravar_chave(chave_demontada)
+        chave_desmontada = embaralhar(crypto.gerar_chave(), desmontar_chave)
+        gravar_chave(chave_desmontada)
         #gravar_chave(crypto.gerar_chave())
 
 def ler_dados(dados):
