@@ -1,13 +1,14 @@
-# programaigreja.spec
+# envio_xml.spec
 block_cipher = None
 
 a = Analysis(
-    ['envioxml.py'],   # arquivo principal
+    ['main.py'],   # arquivo principal
     pathex=[],
     binaries=[],
     datas=[],
-    hiddenimports=['crypto', 'dados', 'enviaremail', 'verificarversao', 'janelaconfig', 'metodos', 'relatorio', 'separarcancelada',
-    'telegrambot', 'xmlreadnota', 'telegram', 'pystray', 'transferarea'],  # módulos auxiliares
+    hiddenimports=['crypto', 'dados', 'enviaremail', 'estilo', 'funcoes', 'janela_alterar_dados', 'verificarversao',
+     'janela_config', 'relatorio', 'separarcancelada', 'telegrambot', 'xmlreadnota', 'telegram', 'pystray',
+      'transferarea'],  # módulos auxiliares
     hookspath=[],
     runtime_hooks=[],
     excludes=[],
