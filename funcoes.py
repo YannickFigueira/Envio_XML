@@ -323,6 +323,8 @@ class Funcoes:
             self.view.controles['entrada_caminho'].insert(0, dados.ler_dados('caminho'))
             self.view.controles['text_area'].delete("1.0", tk.END)
             self.view.controles['text_area'].insert("1.0", "\n".join(dados.ler_dados('emailsparaenvio')))
+            self.view.controles['checkbox_relatorio'].set(dados.ler_dados('relatorio'))
+            self.view.controles['checkbox_sistema'].set(dados.ler_dados('segundo_sistema'))
 
         carregar_dados()
 
