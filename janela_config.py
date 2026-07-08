@@ -2,7 +2,7 @@ import platform
 import tkinter as tk
 from tkinter import ttk
 
-import dados, estilo
+import estilo
 
 class JanelaPrincipal:
     def __init__(self, janela_principal):
@@ -85,13 +85,11 @@ class JanelaPrincipal:
         linha += 1
 
         self.checkbox_relatorio = tk.BooleanVar()
-        self.checkbox_relatorio.set(dados.ler_dados('relatorio'))
         self.checkbox_rel = ttk.Checkbutton(self.janela_principal, text="Gerar relatório:", variable=self.checkbox_relatorio)
         self.checkbox_rel.grid(row=linha, column=0, padx=estilo.PADX_COMPONENTE, pady=estilo.PADY_COMPONENTE, sticky="w")
         self.controles['checkbox_relatorio'] = self.checkbox_relatorio
 
         self.checkbox_sistema = tk.BooleanVar()
-        self.checkbox_sistema.set(dados.ler_dados('segundo_sistema'))
         self.checkbox_sis = ttk.Checkbutton(self.janela_principal, text="Configurar segundo sistema:", variable=self.checkbox_sistema)
         self.checkbox_sis.grid(row=linha, column=1, padx=estilo.PADX_COMPONENTE, pady=estilo.PADY_COMPONENTE, sticky="w")
         self.controles['checkbox_sistema'] = self.checkbox_sistema

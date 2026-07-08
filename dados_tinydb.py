@@ -1,5 +1,10 @@
+import base64
 import os
 from tinydb import TinyDB, Query
+
+import crypto
+
+desmontar_chave = 10 # Mudar para o número desejado
 
 dados_dir = "dados"
 if not os.path.exists(dados_dir):
@@ -13,26 +18,27 @@ Config = Query()
 dados_backup = {
     "id_config": "global",
     "database": {
-        "cliente": "Marmita",
+        "cliente": "cliente",
         "email": "exemplo@dominio.com.br",
-        "senhaemail": "",
-        "caminhopasta": "C:\\Program Files (x86)\\Comercial",
-        "emailsparaenvio": [
+        "senha_email": "",
+        "caminho_sistema": "",
+        "emails_para_envio": [
             "exemplo1@dominio.com",
             "exemplo2@dominio.com",
             "exemplo3@dominio.com.br"
         ],
-        "dia": "7",
-        "executado": "True",
-        "sistema_emissor": "Comercial",
-        "ultima_nota_danfe": "000000017",
-        "ultima_nota_nfce": "158506",
-        "relatorio": "True",
-        "segundo_sistema": "True",
+        "dia": 7,
+        "executado": False,
+        "sistema_emissor": "",
+        "ultima_nota_danfe": "",
+        "ultima_nota_nfce": "",
+        "relatorio": True,
+        "segundo_sistema": False,
         "segundo_sis_pasta": "",
-        "modoenvio": "Telegram",
+        "modo_envio": "Telegram",
         "telegrambot": "",
-        "chat_id": ""
+        "chat_id": "",
+        "crypto_key": ""
     }
 }
 
@@ -55,9 +61,9 @@ def gravar_nova_tarefa(nome_tarefa):
     config_atual['database'] = {
         "cliente": "Marmita",
         "email": "exemplo@dominio.com.br",
-        "senhaemail": "",
-        "caminhopasta": "C:\\Program Files (x86)\\Comercial",
-        "emailsparaenvio": [
+        "senha_email": "",
+        "caminho_sistema": "C:\\Program Files (x86)\\Comercial",
+        "emails_para_envio": [
             "exemplo1@dominio.com",
             "exemplo2@dominio.com",
             "exemplo3@dominio.com.br"
@@ -70,9 +76,10 @@ def gravar_nova_tarefa(nome_tarefa):
         "relatorio": "True",
         "segundo_sistema": "True",
         "segundo_sis_pasta": "",
-        "modoenvio": "Telegram",
+        "modo_envio": "Telegram",
         "telegrambot": "",
-        "chat_id": ""
+        "chat_id": "",
+        "crypto_key": ""
     }
 
     # 4. Salva de volta no TinyDB
@@ -80,7 +87,7 @@ def gravar_nova_tarefa(nome_tarefa):
     print(f"Tarefa '{nome_tarefa}' adicionada com sucesso!")
     return True
 
-def atualizar_campo_database(campo, valor):
+def atualizar_dados(campo, valor):
     # 1. Busca o estado mais recente do banco de dados
     config_atual = tabela_config.search(Config.id_config == "global")[0]
 
@@ -92,7 +99,41 @@ def atualizar_campo_database(campo, valor):
     tabela_config.update(config_atual, Config.id_config == "global")
 
 # --- LEITURA DOS DADOS ---
-def carregar_dados_database():
+def carregar_dados():
     config_atual = tabela_config.search(Config.id_config == "global")[0]
 
     return config_atual
+
+# --- Utilização da chave ---
+def embaralhar(texto, qtd):
+    # Move as últimas 'qtd' letras para a frente
+    return texto[-qtd:] + texto[:-qtd]
+
+def restaurar(texto, qtd):
+    # Move as primeiras 'qtd' letras para trás
+    return texto[qtd:] + texto[:qtd]
+
+def open_key(config_atual):
+    chave_crypto = config_atual['database']['crypto_key']
+    if not chave_crypto == "":
+        chave_recuperada = chave_crypto
+        chave_crypto = restaurar(chave_recuperada, desmontar_chave)
+
+    return chave_crypto
+
+def gerar_chave(config_atual):
+    chave_leitura = open_key(config_atual)
+
+    if chave_leitura == "":
+        chave_desmontada = embaralhar(crypto.gerar_chave().decode('utf-8'), desmontar_chave)
+        atualizar_dados('crypto_key', chave_desmontada)
+
+def ler_dados_telegram(config_atual):
+    if not config_atual["database"]["telegrambot"] == "":
+        telegrambot = crypto.recuperar_cripto(open_key(config_atual), config_atual["database"]["telegrambot"])
+        chat_id = crypto.recuperar_cripto(open_key(config_atual),  config_atual["database"]["chat_id"])
+    else:
+        telegrambot = ""
+        chat_id = ""
+
+    return telegrambot, chat_id

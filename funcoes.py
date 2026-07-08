@@ -15,7 +15,7 @@ from PIL import Image
 from pystray import Icon, Menu, MenuItem
 
 # Módulos próprios
-import dados, estilo, separarcancelada, telegrambot, verificarversao, xmlreadnota, transferarea
+import dados_tinydb, estilo, separarcancelada, telegrambot, verificarversao, xmlreadnota, transferarea
 from janela_alterar_dados import JanelaAlterarDados
 
 # --- Registro de erros ---
@@ -51,6 +51,7 @@ agora = datetime.now()
 dia = agora.strftime("%d")
 mes = agora.strftime("%m")
 ano = agora.strftime("%Y")
+config_dados = dados_tinydb.carregar_dados()
 # --- Comandos dos Menus da janela principal ---
 def abrir_janela_alterar_dados(janela_principal):
     visual = JanelaAlterarDados(janela_principal)
@@ -60,8 +61,8 @@ def reset_telegram():
     resposta = messagebox.askyesno("Verificar", "Deseja mesmo deletar os dados")
 
     if resposta:
-        dados.gravar_dados("telegrambot", "")
-        dados.gravar_dados("chat_id", "")
+        dados_tinydb.atualizar_dados('telegrambot', '')
+        dados_tinydb.atualizar_dados('chat_id', '')
         messagebox.showinfo("Completo", "Dados apagados com sucesso!")
 
 def abrir_logs(): # Padronizar logs
@@ -136,8 +137,8 @@ def carregar_texto(arquivo):
             paragrafo = texto.split("\n")
             telegram_token = paragrafo[0].split("=")
             telegram_chat_id = paragrafo[1].split("=")
-            dados.gravar_dados("telegrambot", telegram_token[1])
-            dados.gravar_dados("chat_id", telegram_chat_id[1])
+            dados_tinydb.atualizar_dados('telegrambot', telegram_token[1])
+            dados_tinydb.atualizar_dados('chat_id', telegram_chat_id[1])
     else:
         messagebox.showerror("Erro", f"Arquivo não encontrado: {arquivo}")
 
@@ -170,9 +171,9 @@ def compactar(origem, destino_zip, mes_desejado, ano_desejado, filial, out):
         if pasta_origem.is_dir() or pasta_origem.is_file():
             if not destino_zip == "":
                 if system == 'Linux':
-                    destino_zip = f"{destino_zip}/{ano_desejado}_{estilo.MES_STR[mes_desejado - 1]}_{dados.ler_dados('cliente')}{filial}.zip"
+                    destino_zip = f"{destino_zip}/{ano_desejado}_{estilo.MES_STR[mes_desejado - 1]}_{config_dados['database']['cliente']}{filial}.zip"
                 elif system == 'Windows':
-                    destino_zip = f"{destino_zip}\\{ano_desejado}_{estilo.MES_STR[mes_desejado - 1]}_{dados.ler_dados('cliente')}{filial}.zip"
+                    destino_zip = f"{destino_zip}\\{ano_desejado}_{estilo.MES_STR[mes_desejado - 1]}_{config_dados['database']['cliente']}{filial}.zip"
                 # Cria o arquivo ZIP no destino
 
                 with zipfile.ZipFile(destino_zip, 'w', zipfile.ZIP_DEFLATED) as zipf:
@@ -214,7 +215,7 @@ def compactar(origem, destino_zip, mes_desejado, ano_desejado, filial, out):
 def copiar_xmls(origem, cliente, mes_desejado, ano_desejado):
     global destino_dir_copia
     destino_compactar = ""
-    if dados.ler_dados('sistema_emissor') == "SmallSoft":
+    if config_dados['database']['sistema_emissor'] == "SmallSoft":
         dir_nfce = f"\\nfce"
     else:
         dir_nfce = ""
@@ -276,18 +277,17 @@ class Funcoes:
 
     def _vincular_janela_principal(self):
         # --- Inicialização da janela principal ---
-        dados.gerar_chave() # Cria a chave crypto se não existir
+        dados_tinydb.gerar_chave(config_dados) # Cria a chave crypto se não existir
 
         if int(dia) > 7:
-            dados.gravar_dados("executado", "False")
+            dados_tinydb.atualizar_dados('executado', False)
 
-        if not dados.ler_dados('caminho') == "":
-            if not dados.ler_dados('executado') and int(dia) <= dados.ler_dados('dia'):
+        if not config_dados['database']['caminho_sistema'] == "":
+            if not config_dados['database']['executado'] and int(dia) <= config_dados['database']['dia']:
                 self.preparar_xmls(int(mes), int(ano))
         else:
             self.view.controles['janela_principal'].deiconify()
 
-        print("Teste início")
         if Path(estilo.SMALL_COMMERCE).exists():
             self.view.controles['sistema_cb'].current(0)
         elif Path(estilo.COMERCIAL).exists():
@@ -314,17 +314,19 @@ class Funcoes:
 
         def carregar_dados():
             self.view.controles['entrada_cliente'].delete(0, tk.END)
-            self.view.controles['entrada_cliente'].insert(0, dados.ler_dados('cliente'))
+            self.view.controles['entrada_cliente'].insert(0, config_dados['database']['cliente'])
             self.view.controles['entrada_email'].delete(0, tk.END)
-            self.view.controles['entrada_email'].insert(0, dados.ler_dados('email'))
+            self.view.controles['entrada_email'].insert(0, config_dados['database']['email'])
             self.view.controles['entrada_senha'].delete(0, tk.END)
-            self.view.controles['entrada_senha'].insert(0, dados.ler_dados('senha'))
+            self.view.controles['entrada_senha'].insert(0, config_dados['database']['senha_email'])
             self.view.controles['entrada_caminho'].delete(0, tk.END)
-            self.view.controles['entrada_caminho'].insert(0, dados.ler_dados('caminho'))
+            self.view.controles['entrada_caminho'].insert(0, config_dados['database']['caminho_sistema'])
+            if not config_dados['database']['sistema_emissor'] == "":
+                self.view.controles['sistema_cb'].set(config_dados['database']['sistema_emissor'])
             self.view.controles['text_area'].delete("1.0", tk.END)
-            self.view.controles['text_area'].insert("1.0", "\n".join(dados.ler_dados('emailsparaenvio')))
-            self.view.controles['checkbox_relatorio'].set(dados.ler_dados('relatorio'))
-            self.view.controles['checkbox_sistema'].set(dados.ler_dados('segundo_sistema'))
+            self.view.controles['text_area'].insert("1.0", f"{config_dados['database']['emails_para_envio']}")
+            self.view.controles['checkbox_relatorio'].set(config_dados['database']['relatorio'])
+            self.view.controles['checkbox_sistema'].set(config_dados['database']['segundo_sistema'])
 
         carregar_dados()
 
@@ -352,7 +354,6 @@ class Funcoes:
 
         # --- Controles da janela principal ---
         self.view.controles['janela_principal'].protocol("WM_DELETE_WINDOW", self.esconder_janela)
-        self.view.controles['sistema_cb'].set(dados.ler_dados('sistema_emissor'))
         self.view.controles['button_selecionar_origem'].config(command=lambda: self.verificar_sistema())
         self.view.controles['button_gravar'].config(command=lambda: self.gravar_config())
 
@@ -408,23 +409,24 @@ class Funcoes:
 
         caminho = Path(entrada)
         if caminho.exists() and pasta != "":
-            dados.gravar_dados("cliente", self.view.controles['entrada_cliente'].get())
-            dados.gravar_dados("email", self.view.controles['entrada_email'].get())
-
-            dados.gravar_dados("senhaemail", dados.crypto.cripto_dados(dados.open_key(), self.view.controles['entrada_senha'].get()))
-            dados.gravar_dados("caminhopasta", pasta)
-            dados.gravar_dados("emailsparaenvio", self.view.controles['text_area'].get("1.0", tk.END))
-            dados.gravar_dados("modoenvio", self.view.controles['modo_envio_cb'].get())
-            dados.gravar_dados("sistema_emissor", self.view.controles['sistema_cb'].get())
-            dados.gravar_dados("relatorio", str(self.view.controles['checkbox_relatorio'].get()))
-            dados.gravar_dados("segundo_sistema", str(self.view.controles['checkbox_sistema'].get()))
-            dados.gravar_dados("segundo_sis_pasta", segundo_sistema)
-            if dados.ler_dados('telegrambot') == "":
+            dados_tinydb.atualizar_dados('cliente', self.view.controles['entrada_cliente'].get().strip())
+            dados_tinydb.atualizar_dados('email', self.view.controles['entrada_email'].get())
+            dados_tinydb.atualizar_dados('senha_email',
+                                         dados_tinydb.crypto.cripto_dados(dados_tinydb.open_key(config_dados),
+                                                                          self.view.controles['entrada_senha'].get()))
+            dados_tinydb.atualizar_dados('caminho_sistema', pasta)
+            dados_tinydb.atualizar_dados('emails_para_envio', self.view.controles['text_area'].get("1.0", tk.END))
+            dados_tinydb.atualizar_dados('modo_envio', self.view.controles['modo_envio_cb'].get())
+            dados_tinydb.atualizar_dados('sistema_emissor', self.view.controles['sistema_cb'].get())
+            dados_tinydb.atualizar_dados('relatorio', self.view.controles['checkbox_relatorio'].get())
+            dados_tinydb.atualizar_dados('segundo_sistema', self.view.controles['checkbox_sistema'].get())
+            dados_tinydb.atualizar_dados('segundo_sis_pasta', segundo_sistema)
+            if config_dados['database']['telegrambot'] == "":
                 # token, chat_id = telegrambot.janela_telegram()
                 messagebox.showinfo("Telegram", "Selecione o arquivo de configuração do Telegram")
                 token, chat_id = selecionar_arquivo()
-                dados.gravar_dados("telegrambot", dados.crypto.cripto_dados(dados.open_key(), token))
-                dados.gravar_dados("chat_id", dados.crypto.cripto_dados(dados.open_key(), chat_id))
+                dados_tinydb.atualizar_dados('telegrambot', dados_tinydb.crypto.cripto_dados(dados_tinydb.open_key(config_dados), token))
+                dados_tinydb.atualizar_dados('chat_id', dados_tinydb.crypto.cripto_dados(dados_tinydb.open_key(config_dados), chat_id))
             resposta = messagebox.askyesno("Completo", "Dados gravados com sucesso!\nDeseja fazer a primeira execução?")
 
             if resposta:
@@ -439,64 +441,67 @@ class Funcoes:
         else:
             mes_desejado -= 1
 
-        caminho_danfe = f"{dados.ler_dados('caminho')}"
+        caminho_danfe = f"{config_dados['database']['caminho_sistema']}"
         caminho_nfce = ""
-        if dados.ler_dados('sistema_emissor') == "SmallSoft":
-            caminho_danfe = f"{dados.ler_dados('caminho')}\\xmldestinatario"
-            caminho_nfce = f"{dados.ler_dados('caminho')}\\xmldestinatario\\NFCE"
-        elif dados.ler_dados('sistema_emissor') == "Comercial":
-            caminho_danfe = f"{dados.ler_dados('caminho')}\\docs"
+        if config_dados['database']['sistema_emissor'] == "SmallSoft":
+            caminho_danfe = f"{config_dados['database']['caminho_sistema']}\\xmldestinatario"
+            caminho_nfce = f"{config_dados['database']['caminho_sistema']}\\xmldestinatario\\NFCE"
+        elif config_dados['database']['sistema_emissor'] == "Comercial":
+            caminho_danfe = f"{config_dados['database']['caminho_sistema']}\\docs"
             caminho_nfce = ""
 
         contador = 1
         filial = ["", "_filial"]
-        if dados.ler_dados('segundo_sistema'):
+        if config_dados['database']['segundo_sistema']:
             contador = 2
 
         for i in range(contador):
             # Nota DANFE
             encontrado_notas = copiar_xmls(caminho_danfe,
-                                                   f"{dados.ler_dados('cliente')}{filial[i]}",
+                                                   f"{config_dados['database']['cliente']}{filial[i]}",
                                                     mes_desejado,
                                                     ano_desejado)
             if encontrado_notas:
-                if dados.ler_dados('relatorio'):
-                    origem_separada = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{dados.ler_dados('cliente')}{filial[i]}\\notas"
-                    destino_separada = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{dados.ler_dados('cliente')}{filial[i]}\\canceladas"
+                if config_dados['database']['relatorio']:
+                    origem_separada = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{config_dados['database']['cliente']}{filial[i]}\\notas"
+                    destino_separada = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{config_dados['database']['cliente']}{filial[i]}\\canceladas"
                     separarcancelada.separar_notas(origem_separada, destino_separada)
 
-                    xmlreadnota.ler_dados_notas(f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{dados.ler_dados('cliente')}{filial[i]}",
+                    xmlreadnota.ler_dados_notas(f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{config_dados['database']['cliente']}{filial[i]}",
                                                 "")
 
             # Nota NFCE
             path = Path(caminho_nfce)
             if path.exists() and caminho_nfce != "":
                 encontrado_notas = copiar_xmls(caminho_nfce,
-                                                        f"{dados.ler_dados('cliente')}{filial[i]}",
+                                                        f"{config_dados['database']['cliente']}{filial[i]}",
                                                         mes_desejado,
                                                         ano_desejado)
                 if encontrado_notas:
                     if self.view.controles['checkbox_relatorio'].get():
                         xmlreadnota.ler_dados_notas(
-                            f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{dados.ler_dados('cliente')}{filial[i]}",
+                            f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{config_dados['database']['cliente']}{filial[i]}",
                                                     "/NFCE/")
 
-            destino_zip_envio = iniciar_compactacao(f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{dados.ler_dados('cliente')}{filial[i]}",
+            destino_zip_envio = iniciar_compactacao(f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{config_dados['database']['cliente']}{filial[i]}",
                                                       destino_dir,
                                                       mes_desejado,
                                                       ano_desejado,
                                                       filial[i])
 
             # Envio do Telegram
-            if dados.ler_dados('modoenvio') == "Telegram" and encontrado_notas:
-                telegrambot.enviar_arquivo(dados.ler_dados('telegrambot'), dados.ler_dados('chat_id'), destino_zip_envio)
+            telegram, chat_id = dados_tinydb.ler_dados_telegram(config_dados)
+            if config_dados['database']['modo_envio'] == "Telegram" and encontrado_notas:
+                telegrambot.enviar_arquivo(telegram, chat_id, destino_zip_envio)
                 #metodos.enviar_email()
             else:
-                if dados.ler_dados('modoenvio') == "Telegram":
-                    telegrambot.enviar_mensagem(dados.ler_dados('telegrambot'), dados.ler_dados('chat_id'),
-                                                f"{ano_desejado} - {estilo.MES_STR[mes_desejado - 1]} - {dados.ler_dados('cliente')}\nNenhum XML gerado")
+                if config_dados['database']['modo_envio'] == "Telegram":
+                    telegrambot.enviar_mensagem(telegram, chat_id,
+                                                f"{ano_desejado} -"
+                                                f" {estilo.MES_STR[mes_desejado - 1]} -"
+                                                f" {config_dados['database']['cliente']}\nNenhum XML gerado")
 
-        dados.gravar_dados("executado", "True")
+        dados_tinydb.atualizar_dados('executado', True)
     # Fim das configurações da janela principal
     # Configurações da janela alterar dados
     def reenviar_xmls(self):

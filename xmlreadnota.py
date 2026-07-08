@@ -1,7 +1,8 @@
 import xml.etree.ElementTree as Et
 import glob
 
-import relatorio, dados
+import dados_tinydb
+import relatorio
 
 def ler_dados_notas(caminho, nfce):
     soma_valores = 0
@@ -270,7 +271,7 @@ def ler_dados_notas(caminho, nfce):
             #print(faltantes)
 
         #dados.config["notas"]["ultima_nota_danfe"] = nota[len(nota) - 2].replace(" ", "")
-        dados.gravar_dados("ultima_nota_danfe", nota[len(nota) - 2].replace(" ", ""))
+        dados_tinydb.atualizar_dados("ultima_nota_danfe", nota[len(nota) - 2].replace(" ", ""))
         #dados.gravar()
 
 
@@ -347,7 +348,7 @@ def ler_dados_notas(caminho, nfce):
         nota = nf_numero.split(",")
         #print(nota[len(nota)-2])
         #dados.config["notas"]["ultima_nota_nfce"] = nota[len(nota) - 2].replace(" ", "")
-        dados.gravar_dados("ultima_nota_nfce", nota[len(nota) - 2].replace(" ", ""))
+        dados_tinydb.atualizar_dados("ultima_nota_nfce", nota[len(nota) - 2].replace(" ", ""))
         #dados.gravar()
 
         relatorio.htm_nfce(estabelecimento, data_nota_soma.split(","), nf_numero.split(","), p_nome.split(","), qtd_produto.split(","),
