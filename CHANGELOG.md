@@ -33,3 +33,7 @@
 - Reescrito o código para melhor manutenção
 - Adicionado verificação do sistema instalado para já selecionar
 - Adicionado pasta padrão dos sistemas para verificar
+
+## [v4.1.2rc2] - 2026-07-07
+### Changes
+- Modificado modo de manipular os dados de configuração

@@ -1,7 +1,7 @@
 # estilo.py
 
 # Versão e repositório
-VERSION = "v4.1.1rc2"
+VERSION = "v4.1.2rc2"
 REPO= "Envio_XML"
 NOME_PROGRAMA = "Envio XML"
 
@@ -14,7 +14,7 @@ PADX_COMPONENTE = 10
 PADY_COMPONENTE = 5
 
 # Arquivo de log
-ARQUIVO_ERRO = "copiar_arquivos.log"
+ARQUIVO_ERRO = "envio_xml.log"
 
 # Variáveis gerais
 # Caminho dos sistemas
