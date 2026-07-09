@@ -37,3 +37,6 @@
 ## [v4.1.2rc2] - 2026-07-07
 ### Changes
 - Modificado modo de manipular os dados de configuração
+
+### Fixes
+- Corrigido execução da cópia do segundo sistema

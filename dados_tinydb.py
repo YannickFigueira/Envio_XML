@@ -22,11 +22,7 @@ dados_backup = {
         "email": "exemplo@dominio.com.br",
         "senha_email": "",
         "caminho_sistema": "",
-        "emails_para_envio": [
-            "exemplo1@dominio.com",
-            "exemplo2@dominio.com",
-            "exemplo3@dominio.com.br"
-        ],
+        "emails_para_envio": "exemplo1@dominio.com\nexemplo2@dominio.com\nexemplo3@dominio.com.br",
         "dia": 7,
         "executado": False,
         "sistema_emissor": "",
