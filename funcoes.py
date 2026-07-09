@@ -441,14 +441,34 @@ class Funcoes:
         else:
             mes_desejado -= 1
 
-        caminho_danfe = f"{config_dados['database']['caminho_sistema']}"
-        caminho_nfce = ""
-        if config_dados['database']['sistema_emissor'] == "SmallSoft":
-            caminho_danfe = f"{config_dados['database']['caminho_sistema']}\\xmldestinatario"
-            caminho_nfce = f"{config_dados['database']['caminho_sistema']}\\xmldestinatario\\NFCE"
-        elif config_dados['database']['sistema_emissor'] == "Comercial":
-            caminho_danfe = f"{config_dados['database']['caminho_sistema']}\\docs"
-            caminho_nfce = ""
+        # Transforma os caminhos do config em objetos Path para manipulação segura
+        caminho_base_1 = Path(config_dados['database']['caminho_sistema'])
+        caminho_base_2 = Path(config_dados['database']['segundo_sis_pasta'])
+
+        sistema = config_dados['database']['sistema_emissor']
+
+        # Inicializa as listas vazias para preenchimento dinâmico
+        caminho_danfe = []
+        caminho_nfce = []
+
+        if sistema == "SmallSoft":
+            # O operador / junta as pastas sem você se preocupar com as barras \
+            caminho_danfe = [
+                str(caminho_base_1 / "xmldestinatario"),
+                str(caminho_base_2 / "xmldestinatario")
+            ]
+            caminho_nfce = [
+                str(caminho_base_1 / "xmldestinatario" / "NFCE"),
+                str(caminho_base_2 / "xmldestinatario" / "NFCE")
+            ]
+
+        elif sistema == "Comercial":
+            caminho_danfe = [
+                str(caminho_base_1 / "docs"),
+                str(caminho_base_2 / "docs")
+            ]
+            # Se o Comercial não usa NFC-e, criamos a lista vazia ou mantemos strings vazias
+            caminho_nfce = ["", ""]
 
         contador = 1
         filial = ["", "_filial"]
@@ -457,7 +477,7 @@ class Funcoes:
 
         for i in range(contador):
             # Nota DANFE
-            encontrado_notas = copiar_xmls(caminho_danfe,
+            encontrado_notas = copiar_xmls(caminho_danfe[i],
                                                    f"{config_dados['database']['cliente']}{filial[i]}",
                                                     mes_desejado,
                                                     ano_desejado)
@@ -471,9 +491,9 @@ class Funcoes:
                                                 "")
 
             # Nota NFCE
-            path = Path(caminho_nfce)
-            if path.exists() and caminho_nfce != "":
-                encontrado_notas = copiar_xmls(caminho_nfce,
+            path = Path(caminho_nfce[i])
+            if path.exists() and caminho_nfce[i] != "":
+                encontrado_notas = copiar_xmls(caminho_nfce[i],
                                                         f"{config_dados['database']['cliente']}{filial[i]}",
                                                         mes_desejado,
                                                         ano_desejado)
