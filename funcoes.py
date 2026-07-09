@@ -512,11 +512,9 @@ class Funcoes:
             # Envio do Telegram
             telegram, chat_id = dados_tinydb.ler_dados_telegram(config_dados)
             if config_dados['database']['modo_envio'] == "Telegram" and encontrado_notas:
-                pass
                 telegrambot.enviar_arquivo(telegram, chat_id, destino_zip_envio)
                 #metodos.enviar_email()
             else:
-                pass
                 if config_dados['database']['modo_envio'] == "Telegram":
                     telegrambot.enviar_mensagem(telegram, chat_id,
                                                 f"{ano_desejado} -"
