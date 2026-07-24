@@ -18,6 +18,28 @@ from pystray import Icon, Menu, MenuItem
 import dados, estilo, separarcancelada, telegrambot, verificarversao, xmlreadnota
 from janela_alterar_dados import JanelaAlterarDados
 
+# --- Registro de erros ---
+home_dir = os.path.expanduser('~')
+system = system()
+if system == 'Linux':
+    if not os.path.exists(f"{home_dir}/log"):
+        os.mkdir(f"{home_dir}/log")
+
+    logging.basicConfig(
+        filename=f"{home_dir}/log/envio_xml.log",        # nome do arquivo
+        level=logging.ERROR,         # nível de log
+        format="%(asctime)s - %(levelname)s - %(message)s"
+    )
+elif system == 'Windows':
+    if not os.path.exists(f"c:/temp"):
+        os.mkdir(f"c:/temp")
+
+    logging.basicConfig(
+        filename="c:/temp/envio_xml.log",  # nome do arquivo
+        level=logging.ERROR,  # nível de log
+        format="%(asctime)s - %(levelname)s - %(message)s"
+    )
+
 # --- Variáveis globais ---
 agora = datetime.now()
 dia = agora.strftime("%d")
@@ -250,6 +272,19 @@ def copiar_xmls(origem, cliente, mes_desejado, ano_desejado):
 class Funcoes:
     def __init__(self, view):
         self.view = view
+        # O controlador se adapta automaticamente baseando-se em qual janela o chamou
+        if hasattr(view, 'nome_janela'):
+            if view.nome_janela == "janela-principal":
+                self._vincular_janela_principal()
+            elif view.nome_janela == "janela-alterar-dados":
+                self._vincular_janela_alterar_dados()
+
+    def _vincular_janela_principal(self):
+        # --- Inicialização da janela principal ---
+        if int(dia) > 7:
+            dados.gravar_dados("executado", "False")
+
+        # Inicialização
 
         # Carregar ícone (use um PNG)
         image = Image.open("imagens/xml.png")
@@ -268,19 +303,6 @@ class Funcoes:
 
         threading.Thread(target=run_icon, daemon=True).start()
 
-        # O controlador se adapta automaticamente baseando-se em qual janela o chamou
-        if hasattr(view, 'nome_janela'):
-            if view.nome_janela == "janela-principal":
-                self._vincular_janela_principal()
-            elif view.nome_janela == "janela-alterar-dados":
-                self._vincular_janela_alterar_dados()
-
-    def _vincular_janela_principal(self):
-        # --- Inicialização da janela principal ---
-        if int(dia) > 7:
-            dados.gravar_dados("executado", "False")
-
-        # Inicialização
         def carregar_dados():
             self.view.controles['entrada_cliente'].delete(0, tk.END)
             self.view.controles['entrada_cliente'].insert(0, dados.ler_dados('cliente'))
@@ -418,7 +440,7 @@ class Funcoes:
                                                     mes_desejado,
                                                     ano_desejado)
             if encontrado_notas:
-                if self.view.controles['checkbox_relatorio'].get():
+                if dados.ler_dados('relatorio'):
                     origem_separada = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{dados.ler_dados('cliente')}{filial[i]}\\notas"
                     destino_separada = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{dados.ler_dados('cliente')}{filial[i]}\\canceladas"
                     separarcancelada.separar_notas(origem_separada, destino_separada)
@@ -449,7 +471,7 @@ class Funcoes:
                 telegrambot.enviar_arquivo(dados.ler_dados('telegrambot'), dados.ler_dados('chat_id'), destino_zip_envio)
                 #metodos.enviar_email()
             else:
-                if self.view.controles['modo_envio_cb']["values"][0] == "Telegram":
+                if dados.ler_dados('modoenvio') == "Telegram":
                     telegrambot.enviar_mensagem(dados.ler_dados('telegrambot'), dados.ler_dados('chat_id'),f"{ano_desejado} - {estilo.MES_STR[mes_desejado - 1]} - {dados.ler_dados('cliente')}\nNenhum XML gerado")
 
         dados.gravar_dados("executado", "True")

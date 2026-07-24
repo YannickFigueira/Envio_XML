@@ -89,13 +89,13 @@ class JanelaPrincipal:
         self.checkbox_relatorio.set(dados.ler_dados('relatorio'))
         self.checkbox_rel = ttk.Checkbutton(self.janela_principal, text="Gerar relatório:", variable=self.checkbox_relatorio)
         self.checkbox_rel.grid(row=linha, column=0, padx=estilo.PADX_COMPONENTE, pady=estilo.PADY_COMPONENTE, sticky="w")
-        self.controles['checkbox_relatorio'] = self.checkbox_rel
+        self.controles['checkbox_relatorio'] = self.checkbox_relatorio
 
         self.checkbox_sistema = tk.BooleanVar()
         self.checkbox_sistema.set(dados.ler_dados('segundo_sistema'))
         self.checkbox_sis = ttk.Checkbutton(self.janela_principal, text="Configurar segundo sistema:", variable=self.checkbox_sistema)
         self.checkbox_sis.grid(row=linha, column=1, padx=estilo.PADX_COMPONENTE, pady=estilo.PADY_COMPONENTE, sticky="w")
-        self.controles['checkbox_sistema'] = self.checkbox_sis
+        self.controles['checkbox_sistema'] = self.checkbox_sistema
         linha += 1
 
         # Área de texto

@@ -1,6 +1,4 @@
-import inspect
 import os, shutil
-import platform
 import threading
 import zipfile
 from pathlib import Path
@@ -11,21 +9,6 @@ from datetime import datetime
 ### Módulos próprios
 import dados
 
-# Pasta padrão dos sistemas de notas
-smallsoft = "C:\\Program Files (x86)\\SmallSoft\\Small Commerce\\xmldestinatario\\NFCE"
-comercial = "C:\\Comercial\\docs"
-
-def log_mensagem(msg):
-    frame = inspect.currentframe().f_back
-
-    if frame is not None:
-        linha = frame.f_lineno
-        arquivo = frame.f_code.co_filename
-        print(f"{msg} (arquivo: {arquivo}, linha: {linha})")
-    else:
-        # Fallback caso não encontre o frame anterior (ex: chamado do escopo global)
-        print(f"{msg} (arquivo: desconhecido, linha: desconhecida)")
-
 # Variáveis
 home_dir = os.path.expanduser('~')
 system = system()
@@ -34,11 +17,10 @@ if system == 'Linux':
         os.mkdir(f"{home_dir}/log")
 
     logging.basicConfig(
-        filename=f"{home_dir}/log/compactar.log",        # nome do arquivo
+        filename=f"{home_dir}/log/envio_xml.log",        # nome do arquivo
         level=logging.ERROR,         # nível de log
         format="%(asctime)s - %(levelname)s - %(message)s"
     )
-
 elif system == 'Windows':
     if not os.path.exists(f"c:/temp"):
         os.mkdir(f"c:/temp")
@@ -133,18 +115,6 @@ def compactar(origem, destino_zip, mes_desejado, ano_desejado, filial, out):
 
     out["arquivo"] = destino_zip
 
-def enviar_email():
-    agora = datetime.now()
-    dia = agora.strftime("%d")
-    dia_registro = float(dados.ler_dados('dia'))
-
-    if (float(dia) <= dia_registro) and (dados.ler_dados('executado') == False):
-        log_mensagem("Dia da semana")
-
-    #hora = agora.strftime("%H")
-    #minuto = agora.strftime("%M")
-    #return hora, minuto
-
 def selecionar_pasta():
     pasta = filedialog.askdirectory(title="Selecione uma pasta")
     if pasta:  # se o usuário não cancelar
@@ -189,40 +159,6 @@ def iniciar_compactacao(origem,
 
 dados.gerar_chave()
 
-def gravar_config(cliente, email, senha, pasta, emails, modoenvio, sistema_emissor, chk_relatorio, chk_segundo_sis, segundo_sistema):
-    entrada = ""
-    if platform.system() == "Windows":
-        entrada = str(pasta).replace("/", "\\")
-    elif platform.system() == "Linux":
-        entrada = str(pasta)
-    else:
-        log_mensagem("Sistema não suportado")
-
-    caminho = Path(entrada)
-    if caminho.exists() and pasta != "":
-        dados.gravar_dados("cliente", cliente)
-        dados.gravar_dados("email", email)
-
-        dados.gravar_dados("senhaemail", dados.crypto.cripto_dados(dados.open_key(), senha))
-        dados.gravar_dados("caminhopasta", pasta)
-        dados.gravar_dados("emailsparaenvio", emails)
-        dados.gravar_dados("modoenvio", modoenvio)
-        dados.gravar_dados("sistema_emissor", sistema_emissor)
-        dados.gravar_dados("relatorio", str(chk_relatorio))
-        dados.gravar_dados("segundo_sistema", str(chk_segundo_sis))
-        dados.gravar_dados("segundo_sis_pasta", segundo_sistema)
-        if dados.ler_dados('telegrambot') == "":
-            #token, chat_id = telegrambot.janela_telegram()
-            messagebox.showinfo("Telegram", "Selecione o arquivo de configuração do Telegram")
-            token, chat_id = selecionar_arquivo()
-            dados.gravar_dados("telegrambot", dados.crypto.cripto_dados(dados.open_key(), token))
-            dados.gravar_dados("chat_id", dados.crypto.cripto_dados(dados.open_key(), chat_id))
-        resposta = messagebox.askyesno("Completo", "Dados gravados com sucesso!\nDeseja fazer a primeira execução?")
-
-        return resposta
-    else:
-        messagebox.showwarning("ERRO", "Pasta não existe!")
-        return None
 
 dados.open_key()
 
