@@ -3,7 +3,7 @@ import glob
 
 import relatorio, dados
 
-def ler_dados_notas(caminho, nfce, dados):
+def ler_dados_notas(caminho, nfce):
     soma_valores = 0
 
     # Namespace da NF-e
