@@ -37,8 +37,6 @@ def ler_dados_notas(caminho, nfce, dados):
     valor_total_notas = ""
     nota_numero_soma = ""
 
-    conta_nota = 0
-    valor_qtd = ""
     for arquivo in glob.glob(caminho + f"/notas/{nfce}*.xml"):
         tree = Et.parse(arquivo)
         root = tree.getroot()
