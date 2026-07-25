@@ -1,9 +1,6 @@
 from telegram import Bot
 import asyncio
 
-import metodos
-
-
 def enviar_arquivo(token, chat_id, caminho):
 
     # Token do seu bot (fornecido pelo BotFather)
