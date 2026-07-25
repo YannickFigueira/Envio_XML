@@ -71,9 +71,6 @@ def open_key():
     if not chave_crypto == "":
         chave_recuperada = base64.b64decode(chave_crypto)
         chave_crypto = restaurar(chave_recuperada, desmontar_chave)
-    else:
-        chave_crypto = chave["crypto"]["key"]
-    # print(chave_crypto, "valor recuperado")
 
     return chave_crypto
 
