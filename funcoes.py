@@ -15,7 +15,7 @@ from PIL import Image
 from pystray import Icon, Menu, MenuItem
 
 # Módulos próprios
-import dados, estilo, separarcancelada, telegrambot, verificarversao, xmlreadnota
+import dados, estilo, separarcancelada, telegrambot, verificarversao, xmlreadnota, transferarea
 from janela_alterar_dados import JanelaAlterarDados
 
 # --- Registro de erros ---
