@@ -1,7 +1,7 @@
 import xml.etree.ElementTree as Et
 import glob
 
-import relatorio
+import relatorio, dados
 
 def ler_dados_notas(caminho, nfce, dados):
     soma_valores = 0
