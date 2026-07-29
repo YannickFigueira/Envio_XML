@@ -1,7 +1,7 @@
 # estilo.py
 
 # Versão e repositório
-VERSION = "v4.1.2rc2"
+VERSION = "v4.1.3rc2"
 REPO= "Envio_XML"
 NOME_PROGRAMA = "Envio XML"
 
