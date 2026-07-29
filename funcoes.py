@@ -15,7 +15,7 @@ from PIL import Image
 from pystray import Icon, Menu, MenuItem
 
 # Módulos próprios
-import dados_tinydb, estilo, separarcancelada, telegrambot, verificarversao, xmlreadnota, transferarea
+import dados_tinydb, estilo, separar_notas, telegrambot, verificarversao, xmlreadnota, transferarea
 from janela_alterar_dados import JanelaAlterarDados
 
 # --- Registro de erros ---
@@ -393,6 +393,7 @@ class Funcoes:
             self.view.controles['entrada_caminho'].insert(0, selecionar_pasta())
 
     def gravar_config(self):
+        global config_dados
         pasta = self.view.controles['entrada_caminho'].get()
 
         segundo_sistema = ""
@@ -427,10 +428,12 @@ class Funcoes:
                 token, chat_id = selecionar_arquivo()
                 dados_tinydb.atualizar_dados('telegrambot', dados_tinydb.crypto.cripto_dados(dados_tinydb.open_key(config_dados), token))
                 dados_tinydb.atualizar_dados('chat_id', dados_tinydb.crypto.cripto_dados(dados_tinydb.open_key(config_dados), chat_id))
+            config_dados = dados_tinydb.carregar_dados()
             resposta = messagebox.askyesno("Completo", "Dados gravados com sucesso!\nDeseja fazer a primeira execução?")
 
             if resposta:
                 self.preparar_xmls(int(mes), int(ano))
+                messagebox.showinfo("Concluído", "XML preparado e enviado com sucesso!")
         else:
             messagebox.showwarning("ERRO", "Pasta não existe!")
 
@@ -474,6 +477,7 @@ class Funcoes:
         filial = ["", "_filial"]
         if config_dados['database']['segundo_sistema']:
             contador = 2
+            print("teste")
 
         for i in range(contador):
             # Nota DANFE
@@ -485,7 +489,9 @@ class Funcoes:
                 if config_dados['database']['relatorio']:
                     origem_separada = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{config_dados['database']['cliente']}{filial[i]}\\notas"
                     destino_separada = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{config_dados['database']['cliente']}{filial[i]}\\canceladas"
-                    separarcancelada.separar_notas(origem_separada, destino_separada)
+                    separar_notas.separar_notas(origem_separada, destino_separada, "cancelada")
+                    destino_contingencia = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{config_dados['database']['cliente']}{filial[i]}\\contingencia"
+                    separar_notas.separar_notas(origem_separada, destino_contingencia, "contingencia")
 
                     xmlreadnota.ler_dados_notas(f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{config_dados['database']['cliente']}{filial[i]}",
                                                 "")

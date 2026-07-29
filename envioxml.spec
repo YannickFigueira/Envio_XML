@@ -7,7 +7,7 @@ a = Analysis(
     binaries=[],
     datas=[],
     hiddenimports=['crypto', 'dados_tinydb', 'enviaremail', 'estilo', 'funcoes', 'janela_alterar_dados', 'verificarversao',
-     'janela_config', 'relatorio', 'separarcancelada', 'telegrambot', 'xmlreadnota', 'telegram', 'pystray',
+     'janela_config', 'relatorio', 'separar_notas', 'telegrambot', 'xmlreadnota', 'telegram', 'pystray',
       'transferarea'],  # módulos auxiliares
     hookspath=[],
     runtime_hooks=[],

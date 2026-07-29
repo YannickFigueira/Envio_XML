@@ -40,3 +40,8 @@
 
 ### Fixes
 - Corrigido execução da cópia do segundo sistema
+
+## [v4.1.3rc2] - 2026-07-29
+### Fixes
+- Adicionado remoção de notas em contingência
+- Corrigido erro ao fazer primeiro envio logo após gravar os dados
