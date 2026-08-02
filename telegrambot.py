@@ -2,7 +2,7 @@ from telegram import Bot
 import asyncio
 
 def enviar_arquivo(token, chat_id, caminho):
-    return
+    #return
 
     # Token do seu bot (fornecido pelo BotFather)
     #TOKEN = token
@@ -23,7 +23,7 @@ def enviar_arquivo(token, chat_id, caminho):
     #metodos.log_mensagem("Ativar envio do arquivo")
 
 def enviar_mensagem(token, chat_id, mensagem):
-    return
+    #return
     # Criar instância do bot
     async def enviar_texto():
         bot = Bot(token=token)
