@@ -4,7 +4,7 @@ import glob
 import dados_tinydb
 import relatorio
 
-def ler_dados_notas(caminho, nfce):
+def ler_dados_notas(caminho, nfce, mes_desejado, ano_desejado):
     soma_valores = 0
 
     # Namespace da NF-e
@@ -277,7 +277,7 @@ def ler_dados_notas(caminho, nfce):
 
         relatorio.htm_danfe(estabelecimento, nota_danfe_relatorio.split(","), serie_relatorio.split(","), data_relatorio.split(","), cliente_relatorio.split(","),
                         valor_produto_relatorio.split(","),valor_frete_relatorio.split(","), valor_desc_relatorio.split(","),
-                        valor_nota_relatorio.split(","), soma_valores_danfe, soma_desc_danfe, soma_total_danfe, faltantes, caminho)
+                        valor_nota_relatorio.split(","), soma_valores_danfe, soma_desc_danfe, soma_total_danfe, faltantes, caminho, mes_desejado, ano_desejado)
 
     # separador do NFCE
     valor = produto.split(",")
@@ -352,7 +352,7 @@ def ler_dados_notas(caminho, nfce):
         #dados.gravar()
 
         relatorio.htm_nfce(estabelecimento, data_nota_soma.split(","), nf_numero.split(","), p_nome.split(","), qtd_produto.split(","),
-                       valor_produto.split(","), valor_total_produto.split(","), soma_valores, faltantes, caminho)
+                       valor_produto.split(","), valor_total_produto.split(","), soma_valores, faltantes, caminho, mes_desejado, ano_desejado)
 
 
 #ler_dados_notas("texto")

@@ -477,7 +477,6 @@ class Funcoes:
         filial = ["", "_filial"]
         if config_dados['database']['segundo_sistema']:
             contador = 2
-            print("teste")
 
         for i in range(contador):
             # Nota DANFE
@@ -494,7 +493,7 @@ class Funcoes:
                     separar_notas.separar_notas(origem_separada, destino_contingencia, "contingencia")
 
                     xmlreadnota.ler_dados_notas(f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{config_dados['database']['cliente']}{filial[i]}",
-                                                "")
+                                                "", mes_desejado, ano_desejado)
 
             # Nota NFCE
             path = Path(caminho_nfce[i])
@@ -507,7 +506,7 @@ class Funcoes:
                     if self.view.controles['checkbox_relatorio'].get():
                         xmlreadnota.ler_dados_notas(
                             f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{config_dados['database']['cliente']}{filial[i]}",
-                                                    "/NFCE/")
+                                                    "/NFCE/", mes_desejado, ano_desejado)
 
             destino_zip_envio = iniciar_compactacao(f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{config_dados['database']['cliente']}{filial[i]}",
                                                       destino_dir,

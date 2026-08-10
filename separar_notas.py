@@ -81,8 +81,8 @@ def separar_notas(pasta_origem, pasta_destino, estado):
                             #print(f"Copiado com sucesso -> {caminho_destino}")
 
                 except ET.ParseError:
-                    return
+                    continue
                     #print(f"Erro ao ler o XML: {arquivo}")
                 except Exception as e:
-                    return
+                    continue
                     #print(f"Erro ao processar {arquivo}: {e}")

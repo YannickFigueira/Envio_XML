@@ -45,3 +45,4 @@
 ### Fixes
 - Adicionado remoção de notas em contingência
 - Corrigido erro ao fazer primeiro envio logo após gravar os dados
+- Pequenos ajustes no rodapé do relatório, corrigido informações apresentadas

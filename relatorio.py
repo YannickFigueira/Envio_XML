@@ -1,6 +1,26 @@
+import calendar
+from datetime import datetime
+import locale
+
+# Configura a localização para português do Brasil
+locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
+
+agora = datetime.now()
+
+# Extração dos campos
+dia = agora.strftime("%d")
+mes = agora.strftime("%B")  # Ex: "agosto"
+#mes_valor = agora.strftime("%m")
+ano = agora.strftime("%Y")
+hora = agora.strftime("%H:%M:%S")  # Ex: "13:20:45"
+
+
+
 # Relatório DANFE
 def htm_danfe(estabelecimento, nota, serie, data_nota_danfe, cliente, valor_produto_danfe, valor_frete_danfe, valor_desc_danfe, valor_nota_danfe,
-              soma_valores_danfe, soma_desc_danfe, soma_total_danfe, faltantes, destino_dir):
+              soma_valores_danfe, soma_desc_danfe, soma_total_danfe, faltantes, destino_dir, mes_desejado, ano_desejado):
+    # Retorna a quantidade total de dias do mês passado
+    total_dias = calendar.monthrange(int(ano_desejado), int(mes_desejado))[1]
 
     soma_valores_danfe_formatado = f"{soma_valores_danfe:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
     soma_desc_danfe_formatado = f"{soma_desc_danfe:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
@@ -69,10 +89,9 @@ def htm_danfe(estabelecimento, nota, serie, data_nota_danfe, cliente, valor_prod
        </table></center>
        </td>
       </table>
-      <font face="Microsoft Sans Serif" size=1><br>Período analisado, de 01/03/2021 até 31/03/2021<br></center>
-    <center><br><font face="Microsoft Sans Serif" size=1>Gerado em Itaguaí, 08 de Abril de 2021 às 16:09:53</font><br>
+      <font face="Microsoft Sans Serif" size=1><br>Período analisado, de 1/{mes_desejado}/{ano_desejado} até {total_dias}/{mes_desejado}/{ano_desejado}<br></center>
+    <center><br><font face="Microsoft Sans Serif" size=1>Gerado em Itaguaí, {dia} de {mes} de {ano} às {hora}</font><br>
     <font face="verdana" size=1><center>Relatório gerado pelo sistema XMLEnvio, <a href="https://github.com/YannickFigueira"> github.com/YannickFigueira</a><font>
-    <font face="Microsoft Sans Serif" size=1><center>Tempo para gerar este relatório: 00:00:00</center>
     </html>"""
 
     # grava o conteúdo no arquivo
@@ -80,7 +99,11 @@ def htm_danfe(estabelecimento, nota, serie, data_nota_danfe, cliente, valor_prod
         arquivo.write(conteudo_htm)
 
 # Relatório NFCE
-def htm_nfce(estabelecimento, data_nota, nota_numero,produto_nome, qtd, valor_unidade, total_notas, total, faltantes, destino_dir):
+def htm_nfce(estabelecimento, data_nota, nota_numero,produto_nome,
+             qtd, valor_unidade, total_notas, total, faltantes,
+             destino_dir, mes_desejado, ano_desejado):
+    # Retorna a quantidade total de dias do mês passado
+    total_dias = calendar.monthrange(int(ano_desejado), int(mes_desejado))[1]
 
     total_formatado = f"{total:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
@@ -129,11 +152,9 @@ def htm_nfce(estabelecimento, data_nota, nota_numero,produto_nome, qtd, valor_un
          <td nowrap valign=top bgcolor=#FFFFFF align=right><font face="Microsoft Sans Serif" size=1><b>  {total_formatado}<br></font></td>
         </tr>
        </table>
-    <font face="Microsoft Sans Serif" size=1><br>Período analisado, de 01/03/2021 até 31/03/2021<br>
-    </center>
-    <center><br><font face="Microsoft Sans Serif" size=1>Gerado em Itaguaí, 08 de Abril de 2021 às 16:14:08</font><br>
+    <font face="Microsoft Sans Serif" size=1><br>Período analisado, de 1/{mes_desejado}/{ano_desejado} até {total_dias}/{mes_desejado}/{ano_desejado}<br></center>
+    <center><br><font face="Microsoft Sans Serif" size=1>Gerado em Itaguaí, {dia} de {mes} de {ano} às {hora}</font><br>
     <font face="verdana" size=1><center>Relatório gerado pelo sistema XMLEnvio, <a href="https://github.com/YannickFigueira"> github.com/YannickFigueira</a><font>
-    <font face="Microsoft Sans Serif" size=1><center>Tempo para gerar este relatório: 00:00:00</center>
     </html>"""
 
     # grava o conteúdo no arquivo
