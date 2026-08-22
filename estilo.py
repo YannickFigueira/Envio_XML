@@ -1,9 +1,24 @@
 # estilo.py
+import os
+from pathlib import Path
 
 # Versão e repositório
-VERSION = "v4.1.3rc2"
+VERSION = "v4.1.4rc2"
 REPO= "Envio_XML"
 NOME_PROGRAMA = "Envio XML"
+
+# Pastas do programa
+home_dir = os.path.expanduser('~')
+programa_dir = f"{home_dir}/.envio xml"
+notas = f"{home_dir}/.envio xml/notas"
+log_files = Path(f"{home_dir}/.envio xml/logs")
+
+if not os.path.exists(programa_dir):
+    os.mkdir(programa_dir)
+if not os.path.exists(notas):
+    os.mkdir(notas)
+if not os.path.exists(log_files):
+    os.mkdir(log_files)
 
 # Margens padrão para janelas e frames
 PADX_JANELA = 20

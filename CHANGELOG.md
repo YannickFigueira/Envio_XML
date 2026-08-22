@@ -46,3 +46,8 @@
 - Adicionado remoção de notas em contingência
 - Corrigido erro ao fazer primeiro envio logo após gravar os dados
 - Pequenos ajustes no rodapé do relatório, corrigido informações apresentadas
+
+## [v4.1.4rc2] - 2026-08-22
+### Changes
+- Otimizado cópia dos arquivos
+- Adcionado módulo arquilo_log.py

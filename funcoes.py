@@ -7,6 +7,7 @@ import sys
 import threading
 import tkinter as tk
 import zipfile
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import Path
 from platform import system
@@ -17,6 +18,10 @@ from pystray import Icon, Menu, MenuItem
 # Módulos próprios
 import dados_tinydb, estilo, separar_notas, telegrambot, verificarversao, xmlreadnota, transferarea
 from janela_alterar_dados import JanelaAlterarDados
+
+# Aumenta o buffer interno do Windows no shutil para 16MB (o padrão é 64KB)
+# Isso reduz as chamadas de sistema e evita que o cache esvazie, mitigando as pausas.
+shutil._WINDOWS_INTERNAL_BUFFER_SIZE = 16 * 1024 * 1024
 
 # --- Registro de erros ---
 home_dir = os.path.expanduser('~')
@@ -65,12 +70,12 @@ def reset_telegram():
         dados_tinydb.atualizar_dados('chat_id', '')
         messagebox.showinfo("Completo", "Dados apagados com sucesso!")
 
-def abrir_logs(): # Padronizar logs
+def abrir_notas(): # Padronizar logs
     if system == "Windows":
-        arquivo = f"C:\\{estilo.NOME_PROGRAMA}\\doc\\CHANGELOG.md"
+        arquivo = f"{home_dir}\\{estilo.notas}\\CHANGELOG.md"
         subprocess.run(["notepad", arquivo])
     elif system == "Linux":
-        arquivo = f"/usr/share/doc/{estilo.NOME_PROGRAMA}/CHANGELOG.md"
+        arquivo = f"{home_dir}\\{estilo.notas}/CHANGELOG.md"
         subprocess.run(["xdg-open", arquivo])  # ou "gedit"
     else:
         log_mensagem("Sistema não suportado")
@@ -242,21 +247,24 @@ def copiar_xmls(origem, cliente, mes_desejado, ano_desejado):
             if not os.path.exists(f"{destino_compactar}/relatorio"): os.makedirs(f"{destino_compactar}/relatorio")
 
     qtd_arquivos = False
-    for arquivo in os.listdir(origem):
-        caminho_arquivo = os.path.join(origem, arquivo)
+    # Executa a cópia concorrente
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        for arquivo in os.listdir(origem):
+            caminho_arquivo = os.path.join(origem, arquivo)
 
-        if os.path.isfile(caminho_arquivo):
-            # Obter data de criação
-            timestamp_modificacao = os.path.getmtime(caminho_arquivo)
-            data_modificacao = datetime.fromtimestamp(timestamp_modificacao)
+            if os.path.isfile(caminho_arquivo):
+                # Obter data de criação
+                timestamp_modificacao = os.path.getmtime(caminho_arquivo)
+                data_modificacao = datetime.fromtimestamp(timestamp_modificacao)
 
-            # Verificar se o arquivo pertence ao mês/ano desejado
-            if data_modificacao.month == mes_desejado and data_modificacao.year == ano_desejado:
-                if isinstance(caminho_arquivo, bytes):
-                    caminho_arquivo = caminho_arquivo.decode('utf-8')
+                # Verificar se o arquivo pertence ao mês/ano desejado
+                if data_modificacao.month == mes_desejado and data_modificacao.year == ano_desejado:
+                    if isinstance(caminho_arquivo, bytes):
+                        caminho_arquivo = caminho_arquivo.decode('utf-8')
 
-                qtd_arquivos = True
-                shutil.copy2(caminho_arquivo, destino_dir_copia)
+                    qtd_arquivos = True
+                    executor.submit(shutil.copy2, caminho_arquivo, destino_dir_copia)
+                    #shutil.copy2(caminho_arquivo, destino_dir_copia)
 
     if qtd_arquivos:
         return qtd_arquivos
