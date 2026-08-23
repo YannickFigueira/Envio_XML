@@ -459,7 +459,10 @@ class Funcoes:
 
         segundo_sistema = ""
         if self.view.controles['checkbox_sistema'].get():
-            segundo_sistema = selecionar_pasta()
+            verificar_segundo = config_dados['database']['segundo_sis_pasta']
+            resposta = messagebox.askyesno("Verificar", f"Este caminho está correto -> {verificar_segundo}")
+            if not resposta:
+                segundo_sistema = selecionar_pasta()
 
         entrada = ""
         if system == "Windows":
