@@ -2,9 +2,12 @@ import glob
 import os, shutil
 import xml.etree.ElementTree as ET
 
+from arquivo_log import registrar_log, gerar_arquivo_log
+
 
 def separar_notas(pasta_origem, pasta_destino, estado):
     global root
+    caminho_log = gerar_arquivo_log()
     ns = {"nfe": "http://www.portalfiscal.inf.br/nfe"}
 
     # Criar pasta destino se não existir
@@ -12,6 +15,7 @@ def separar_notas(pasta_origem, pasta_destino, estado):
 
     match estado:
         case "cancelado":
+            registrar_log(caminho_log, f"[INFO] Separando notas canceladas")
             for arquivo in os.listdir(pasta_origem):
                 caminho = os.path.join(pasta_origem, arquivo)
 
@@ -34,13 +38,15 @@ def separar_notas(pasta_origem, pasta_destino, estado):
                                 shutil.move(origem_chave, destino_chave)
                                 #print(f"Movido: {chave_nome}")
                             else:
-                                print(f"Arquivo {chave_nome} não encontrado na pasta origem")
+                                registrar_log(caminho_log, f"[ERRO] Arquivo {chave_nome} não encontrado na pasta origem")
                         else:
-                            print(f"Chave não encontrada em {arquivo}")
+                            registrar_log(caminho_log, f"Chave não encontrado em {arquivo}")
 
                     except Exception as e:
-                        print(f"Erro ao processar {arquivo}: {e}")
+                        registrar_log(caminho_log, f"[ERRO] {e}")
+            registrar_log(caminho_log, f"[INFO] Concluído separação canceladas!")
         case "contingencia":
+            registrar_log(caminho_log, f"[INFO] Separando notas em contingências")
             # Busca por todos os arquivos .xml na pasta de origem
             for arquivo in glob.glob(os.path.join(pasta_origem, "*.xml")):
                 try:
@@ -79,10 +85,7 @@ def separar_notas(pasta_origem, pasta_destino, estado):
                             # Copia o arquivo atual para a pasta de destino
                             shutil.move(arquivo, caminho_destino)
                             #print(f"Copiado com sucesso -> {caminho_destino}")
-
-                except ET.ParseError:
-                    continue
-                    #print(f"Erro ao ler o XML: {arquivo}")
                 except Exception as e:
+                    registrar_log(caminho_log, f"[ERRO] {e}")
                     continue
-                    #print(f"Erro ao processar {arquivo}: {e}")
+            registrar_log(caminho_log, f"[INFO] Concluído separação em contingência!")
