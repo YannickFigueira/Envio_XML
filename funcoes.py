@@ -14,6 +14,7 @@ from platform import system
 from tkinter import messagebox, filedialog
 from PIL import Image
 from pystray import Icon, Menu, MenuItem
+from screeninfo import get_monitors
 
 # Módulos próprios
 import dados_tinydb, estilo, separar_notas, telegrambot, verificarversao, xmlreadnota, transferarea
@@ -62,6 +63,7 @@ dia = agora.strftime("%d")
 mes = agora.strftime("%m")
 ano = agora.strftime("%Y")
 config_dados = dados_tinydb.carregar_dados()
+
 # --- Comandos dos Menus da janela principal ---
 def abrir_janela_alterar_dados(janela_principal):
     visual = JanelaAlterarDados(janela_principal)
@@ -89,7 +91,7 @@ def visitar_site():
     pagina = f"https://github.com/YannickFigueira"
     resposta = messagebox.askyesno("Sobre", f"{estilo.NOME_PROGRAMA} {estilo.VERSION}\n"
                                             f"Deseja visitar a página\n"
-                                            f"Desenvolvedor YannickFigueira\n"
+                                            f"Desenvolvedor: YannickFigueira\n"
                                             f"chronostimeinchain@gmail.com")
     if resposta:
         verificarversao.webbrowser.open(pagina)
@@ -128,6 +130,25 @@ def log_mensagem(msg):
     else:
         # Fallback caso não encontre o frame anterior (ex: chamado do escopo global)
         print(f"{msg} (arquivo: desconhecido, linha: desconhecida)")
+
+def pegar_resolucao():
+    monitors = get_monitors()
+    first = None
+
+    for m in monitors:
+        # 1. Tenta obter o atributo is_primary com segurança
+        is_primary = getattr(m, 'is_primary', False)
+
+        # 2. Se não existir, verifica se a posição é a origem (0, 0)
+        if is_primary or (m.x == 0 and m.y == 0):
+            first = m
+            break
+
+    # Fallback caso nada seja identificado
+    if not first and monitors:
+        first = monitors[0]
+
+    return first
 
 # --- Inicio da classe Funções
 def selecionar_arquivo_telegram():
@@ -307,6 +328,24 @@ class Funcoes:
 
     def _vincular_janela_principal(self):
         # --- Inicialização da janela principal ---
+
+        first = pegar_resolucao()
+
+        if first is not None:
+            largura_tela = first.width
+            altura_tela = first.height
+        else:
+            # Defina um valor padrão de fallback caso não encontre o monitor
+            largura_tela = 1920
+            altura_tela = 1080
+
+        # Calcula as posições X e Y para centralizar
+        pos_x = int(largura_tela * 0.30)
+        pos_y = int(altura_tela * 0.30)
+
+        # Passa apenas +X+Y (ou -X-Y para borda direita/inferior)
+        self.view.controles['janela_principal'].geometry(f"+{pos_x}+{pos_y}")
+
         dados_tinydb.gerar_chave(config_dados) # Cria a chave crypto se não existir
 
         if int(dia) > 7:
@@ -460,9 +499,12 @@ class Funcoes:
         segundo_sistema = ""
         if self.view.controles['checkbox_sistema'].get():
             verificar_segundo = config_dados['database']['segundo_sis_pasta']
-            resposta = messagebox.askyesno("Verificar", f"Este caminho está correto -> {verificar_segundo}")
-            if not resposta:
+            resposta = messagebox.askyesno("Verificar", f"Este caminho está correto \n{verificar_segundo}")
+            if resposta:
+                segundo_sistema = verificar_segundo
+            else:
                 segundo_sistema = selecionar_pasta()
+
 
         entrada = ""
         if system == "Windows":
