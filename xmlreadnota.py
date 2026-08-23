@@ -3,8 +3,11 @@ import glob
 
 import dados_tinydb
 import relatorio
+from arquivo_log import gerar_arquivo_log, registrar_log
+
 
 def ler_dados_notas(caminho, nfce, mes_desejado, ano_desejado):
+    caminho_log = gerar_arquivo_log()
     soma_valores = 0
 
     # Namespace da NF-e
@@ -39,6 +42,7 @@ def ler_dados_notas(caminho, nfce, mes_desejado, ano_desejado):
     nota_numero_soma = ""
 
     for arquivo in glob.glob(caminho + f"/notas/{nfce}*.xml"):
+        registrar_log(caminho_log, f"[INFO] Iniciado leitura!")
         tree = Et.parse(arquivo)
         root = tree.getroot()
 
@@ -50,8 +54,8 @@ def ler_dados_notas(caminho, nfce, mes_desejado, ano_desejado):
                 #print(modelo)
                 # print(qtd)
 
-            except (TypeError, ValueError):
-                pass
+            except (TypeError, ValueError) as e:
+                registrar_log(caminho_log, f"[ERRO] {e}")
 
         match modelo:
             case 55:
@@ -79,15 +83,15 @@ def ler_dados_notas(caminho, nfce, mes_desejado, ano_desejado):
                                 nota_danfe += "0" + texto_str + ","
                             case _:
                                 nota_danfe += elem.text + ","
-                    except (TypeError, ValueError):
-                        pass
+                    except (TypeError, ValueError) as e:
+                        registrar_log(caminho_log, f"[ERRO] {e}")
 
                 # Procurar a tag serie dentro do namespace
                 for elem in root.findall(".//nfe:serie", ns):
                     try:
                         serie += "00" + str(elem.text) + ","
-                    except (TypeError, ValueError):
-                        pass
+                    except (TypeError, ValueError) as e:
+                        registrar_log(caminho_log, f"[ERRO] {e}")
 
                 # Procurar a tag dhEmi dentro do namespace
                 for elem in root.findall(".//nfe:dhEmi", ns):
@@ -96,8 +100,8 @@ def ler_dados_notas(caminho, nfce, mes_desejado, ano_desejado):
                         ajuste_data_danfe = anomesdia_danfe[0].split("-")
                         montar_data_danfe = ajuste_data_danfe[2] + "/" + ajuste_data_danfe[1] + "/" + ajuste_data_danfe[0]
                         data_nota_danfe += montar_data_danfe + ","
-                    except (TypeError, ValueError):
-                        pass
+                    except (TypeError, ValueError) as e:
+                        registrar_log(caminho_log, f"[ERRO] {e}")
 
                 # Procurar a tag xNome dentro do namespace
                 for dest in root.findall(".//nfe:emit", ns):
@@ -105,8 +109,8 @@ def ler_dados_notas(caminho, nfce, mes_desejado, ano_desejado):
                         if dest is not None:
                             xnome_dest = dest.find(".//nfe:xNome", ns)
                             estabelecimento = xnome_dest.text
-                    except (TypeError, ValueError):
-                        pass
+                    except (TypeError, ValueError) as e:
+                        registrar_log(caminho_log, f"[ERRO] {e}")
 
                 # Procurar a tag xNome dentro do namespace
                 for dest in root.findall(".//nfe:dest", ns):
@@ -114,8 +118,8 @@ def ler_dados_notas(caminho, nfce, mes_desejado, ano_desejado):
                         if dest is not None:
                             xnome_dest = dest.find(".//nfe:xNome", ns)
                             cliente += xnome_dest.text + ","
-                    except (TypeError, ValueError):
-                        pass
+                    except (TypeError, ValueError) as e:
+                        registrar_log(caminho_log, f"[ERRO] {e}")
 
                 # Procurar a tag vProd dentro do namespace
                 for total in root.findall(".//nfe:total", ns):
@@ -136,8 +140,8 @@ def ler_dados_notas(caminho, nfce, mes_desejado, ano_desejado):
                             valor_nota_danfe += nota_total.text + ","
                             soma_total_danfe += float(str(nota_total.text))
 
-                    except (TypeError, ValueError):
-                        pass
+                    except (TypeError, ValueError) as e:
+                        registrar_log(caminho_log, f"[ERRO] {e}")
                 index_danfe += 1
 
 
@@ -147,15 +151,15 @@ def ler_dados_notas(caminho, nfce, mes_desejado, ano_desejado):
                 for elem in root.findall(".//nfe:xNome", ns):
                     try:
                         estabelecimento = elem.text
-                    except (TypeError, ValueError):
-                        pass
+                    except (TypeError, ValueError) as e:
+                        registrar_log(caminho_log, f"[ERRO] {e}")
 
                 # Procurar a tag vNF dentro do namespace
                 for elem in root.findall(".//nfe:nNF", ns):
                     try:
                         nota_numero = elem.text + ","
-                    except (TypeError, ValueError):
-                        pass
+                    except (TypeError, ValueError) as e:
+                        registrar_log(caminho_log, f"[ERRO] {e}")
 
                 # Procurar a tag dhEmi dentro do namespace
                 for elem in root.findall(".//nfe:dhEmi", ns):
@@ -164,22 +168,22 @@ def ler_dados_notas(caminho, nfce, mes_desejado, ano_desejado):
                         ajuste_data = anomesdia[0].split("-")
                         montar_data = ajuste_data[2] + "/" + ajuste_data[1] + "/" + ajuste_data[0]
                         data_nota = montar_data + ","
-                    except (TypeError, ValueError):
-                        pass
+                    except (TypeError, ValueError) as e:
+                        registrar_log(caminho_log, f"[ERRO] {e}")
 
                 # Procurar a tag qCom dentro do namespace
                 for elem in root.findall(".//nfe:qCom", ns):
                     try:
                         qtd += elem.text + ","
-                    except (TypeError, ValueError):
-                        pass
+                    except (TypeError, ValueError) as e:
+                        registrar_log(caminho_log, f"[ERRO] {e}")
 
                 # Procurar a tag xProd dentro do namespace
                 for elem in root.findall(".//nfe:xProd", ns):
                     try:
                         produto += elem.text + ","
-                    except (TypeError, ValueError):
-                        pass
+                    except (TypeError, ValueError) as e:
+                        registrar_log(caminho_log, f"[ERRO] {e}")
 
                 valor_qtd = qtd.split(",")
                 conta_nota = 0
@@ -192,8 +196,8 @@ def ler_dados_notas(caminho, nfce, mes_desejado, ano_desejado):
                         valor_total_notas += soma_valores_nota + ","
                         index_nfce += 1
                         conta_nota += 1
-                    except (TypeError, ValueError):
-                        pass
+                    except (TypeError, ValueError) as e:
+                        registrar_log(caminho_log, f"[ERRO] {e}")
 
                 nota_numero = conta_nota*nota_numero
                 nota_numero_soma += nota_numero
@@ -204,8 +208,8 @@ def ler_dados_notas(caminho, nfce, mes_desejado, ano_desejado):
                 for elem in root.findall(".//nfe:vNF", ns):
                     try:
                         soma_valores += float(str(elem.text))
-                    except (TypeError, ValueError):
-                        pass
+                    except (TypeError, ValueError) as e:
+                        registrar_log(caminho_log, f"[ERRO] {e}")
 
     caminho = caminho + "/relatorio"
 
