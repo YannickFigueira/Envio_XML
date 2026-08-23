@@ -11,14 +11,15 @@ def abrir_logs(view):
 
 def abrir_arquivo(view):
     arquivo = view.controles['cmb_selecao'].get()
-    if platform.system() == "Windows":
-        # arquivo = "C:\\Programa Igreja\\doc\\CHANGELOG.md"
-        subprocess.run(["notepad", log_files / arquivo])
-    elif platform.system() == "Linux":
-        # arquivo = "/usr/share/doc/programaigreja/CHANGELOG.md"
-        subprocess.run(["xdg-open", log_files / arquivo])  # ou "gedit"
-    else:
-        print("Sistema não suportado")
+    if arquivo != "":
+        if platform.system() == "Windows":
+            # arquivo = "C:\\Programa Igreja\\doc\\CHANGELOG.md"
+            subprocess.run(["notepad", log_files / arquivo])
+        elif platform.system() == "Linux":
+            # arquivo = "/usr/share/doc/programaigreja/CHANGELOG.md"
+            subprocess.run(["xdg-open", log_files / arquivo])  # ou "gedit"
+        else:
+            print("Sistema não suportado")
 
 def gerar_arquivo_log():
     # Gera o nome dinâmico do arquivo

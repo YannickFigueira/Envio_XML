@@ -17,6 +17,7 @@ from pystray import Icon, Menu, MenuItem
 
 # Módulos próprios
 import dados_tinydb, estilo, separar_notas, telegrambot, verificarversao, xmlreadnota, transferarea
+from arquivo_log import ler_pasta_log, abrir_logs
 from janela_alterar_dados import JanelaAlterarDados
 from janela_logs import JanelaLogs
 
@@ -96,7 +97,22 @@ def visitar_site():
 # --- Comandos gerais ---
 
 def selecionar_pasta():
-    pasta = filedialog.askdirectory(title="Selecione uma pasta")
+    # Define o caminho padrão expandindo o $USER atual do sistema de forma segura
+    # No Linux/Mac, isso aponta para /home/usuario/Documentos (ou Documentos com "D" maiúsculo)
+    diretorio_padrao = os.path.expanduser(estilo.PASTA_PROGRAMAS)
+
+    # Se a pasta "Documentos" em português não existir, tenta em inglês ou usa a Home
+    if not os.path.exists(diretorio_padrao):
+        diretorio_padrao = os.path.expanduser("~/Documents")
+    if not os.path.exists(diretorio_padrao):
+        diretorio_padrao = os.path.expanduser("~")
+
+    # Abre o seletor focado em arquivos .txt
+    pasta = filedialog.askdirectory(
+        title="Selecione uma pasta",
+        initialdir=diretorio_padrao
+    )
+
     if pasta:  # se o usuário não cancelar
         return pasta
     else:
@@ -114,7 +130,7 @@ def log_mensagem(msg):
         print(f"{msg} (arquivo: desconhecido, linha: desconhecida)")
 
 # --- Inicio da classe Funções
-def selecionar_arquivo():
+def selecionar_arquivo_telegram():
     # Define o caminho padrão expandindo o $USER atual do sistema de forma segura
     # No Linux/Mac, isso aponta para /home/usuario/Documentos (ou Documentos com "D" maiúsculo)
     diretorio_padrao = os.path.expanduser("~/Documentos")
@@ -377,7 +393,19 @@ class Funcoes:
         self.view.controles['btn_executar'].config(command=lambda: self.reenviar_xmls())
 
     def _vincular_janela_logs(self):
-        pass
+        # --- Inicialização da janela logs ---
+        arquivos_log = ler_pasta_log()
+        texto_log = "\n".join([f"{item}" for item in arquivos_log])
+
+        # --- Controles da Janlea Logs ---
+        self.view.controles['janela_logs'].protocol("WM_DELETE_WINDOW",
+                                                         lambda: self.fechar_janelas('janela_logs'))
+
+        if len(arquivos_log) > 0:
+            self.view.controles['lbl_logs'].config(text=texto_log)
+            self.view.controles['cmb_selecao'].config(values=arquivos_log)
+            self.view.controles['cmb_selecao'].current(0)
+        self.view.controles['btn_abrir_logs'].config(command=lambda: abrir_logs(self.view))
 
     # --- Inicialização das Janelas ---
 
@@ -458,7 +486,7 @@ class Funcoes:
             if config_dados['database']['telegrambot'] == "":
                 # token, chat_id = telegrambot.janela_telegram()
                 messagebox.showinfo("Telegram", "Selecione o arquivo de configuração do Telegram")
-                token, chat_id = selecionar_arquivo()
+                token, chat_id = selecionar_arquivo_telegram()
                 dados_tinydb.atualizar_dados('telegrambot', dados_tinydb.crypto.cripto_dados(dados_tinydb.open_key(config_dados), token))
                 dados_tinydb.atualizar_dados('chat_id', dados_tinydb.crypto.cripto_dados(dados_tinydb.open_key(config_dados), chat_id))
             config_dados = dados_tinydb.carregar_dados()
@@ -566,3 +594,13 @@ class Funcoes:
         self.preparar_xmls(int(self.view.controles['ent_mes'].current()) + 2, int(self.view.controles['ent_ano'].get()))
         messagebox.showinfo("Concluído", "XML preparado e enviado com sucesso!")
         self.view.controles['janela_alterar'].destroy()
+
+    def fechar_janelas(self, janela):
+        global janela_logs_aberta
+
+        match janela:
+            case 'janela_principal':
+                if janela_logs_aberta:
+                    return
+
+        self.view.controles[f'{janela}'].destroy()

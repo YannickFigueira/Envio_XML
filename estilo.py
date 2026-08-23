@@ -42,8 +42,9 @@ ARQUIVO_ERRO = "envio_xml.log"
 
 # Variáveis gerais
 # Caminho dos sistemas
-SMALL_COMMERCE = "C:\\Program Files (x86)\\SmallSoft\\Small Commerce"
-COMERCIAL = "C:\\Program Files (x86)\\Comercial"
+PASTA_PROGRAMAS = "C:\\Program Files (x86)"
+SMALL_COMMERCE = f"{PASTA_PROGRAMAS}\\SmallSoft\\Small Commerce"
+COMERCIAL = f"{PASTA_PROGRAMAS}\\Comercial"
 # Strings
 MES_STR = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro",
                "Novembro", "Dezembro"]
