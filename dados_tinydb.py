@@ -1,4 +1,3 @@
-import base64
 import os
 from tinydb import TinyDB, Query
 
