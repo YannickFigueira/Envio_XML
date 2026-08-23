@@ -50,4 +50,5 @@
 ## [v4.1.4rc2] - 2026-08-22
 ### Changes
 - Otimizado cópia dos arquivos
-- Adcionado módulo arquilo_log.py
+- Adicionado módulo arquivo_log.py
+- Adicionado janela de logs

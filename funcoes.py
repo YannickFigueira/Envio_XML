@@ -18,10 +18,14 @@ from pystray import Icon, Menu, MenuItem
 # Módulos próprios
 import dados_tinydb, estilo, separar_notas, telegrambot, verificarversao, xmlreadnota, transferarea
 from janela_alterar_dados import JanelaAlterarDados
+from janela_logs import JanelaLogs
 
 # Aumenta o buffer interno do Windows no shutil para 16MB (o padrão é 64KB)
 # Isso reduz as chamadas de sistema e evita que o cache esvazie, mitigando as pausas.
 shutil._WINDOWS_INTERNAL_BUFFER_SIZE = 16 * 1024 * 1024
+
+# Variáveis globais
+janela_logs_aberta = False
 
 # --- Registro de erros ---
 home_dir = os.path.expanduser('~')
@@ -72,10 +76,10 @@ def reset_telegram():
 
 def abrir_notas(): # Padronizar logs
     if system == "Windows":
-        arquivo = f"{home_dir}\\{estilo.notas}\\CHANGELOG.md"
+        arquivo = f"{estilo.notas}\\CHANGELOG.md"
         subprocess.run(["notepad", arquivo])
     elif system == "Linux":
-        arquivo = f"{home_dir}\\{estilo.notas}/CHANGELOG.md"
+        arquivo = f"{estilo.notas}/CHANGELOG.md"
         subprocess.run(["xdg-open", arquivo])  # ou "gedit"
     else:
         log_mensagem("Sistema não suportado")
@@ -282,6 +286,8 @@ class Funcoes:
                 self._vincular_janela_principal()
             elif view.nome_janela == "janela-alterar-dados":
                 self._vincular_janela_alterar_dados()
+            elif view.nome_janela == "logs":
+                self._vincular_janela_logs()
 
     def _vincular_janela_principal(self):
         # --- Inicialização da janela principal ---
@@ -349,14 +355,16 @@ class Funcoes:
         transferarea.ClipboardMenu(self.view.controles['janela_principal'], self.view.controles['entrada_senha'])
 
         # --- Controles do Menu ---
-        # Manu config
+        # Menu Arquivo
+        self.view.controles['menu_arquivo'].add_command(label='Abrir logs', command=lambda: self.abrir_janela_logs())
+        # Menu config
         self.view.controles['menu_config'].add_command(label="Reenviar notas",
                                                        command=lambda: abrir_janela_alterar_dados(self.view.controles['janela_principal']))
         self.view.controles['menu_config'].add_command(label="Resetar dados Telegram", command=lambda: reset_telegram())
         # Menu ajuda
         self.view.controles['menu_ajuda'].add_command(label="Verificar atualização",
                                command=lambda: verificarversao.consultar_lancamento(estilo.REPO, estilo.VERSION))
-        self.view.controles['menu_ajuda'].add_command(label="Notas da versão", command=lambda: abrir_logs())
+        self.view.controles['menu_ajuda'].add_command(label="Notas da versão", command=lambda: abrir_notas())
         self.view.controles['menu_ajuda'].add_command(label="Sobre",
                                                       command=lambda: visitar_site())
 
@@ -367,6 +375,23 @@ class Funcoes:
 
     def _vincular_janela_alterar_dados(self):
         self.view.controles['btn_executar'].config(command=lambda: self.reenviar_xmls())
+
+    def _vincular_janela_logs(self):
+        pass
+
+    # --- Inicialização das Janelas ---
+
+    def abrir_janela_logs(self):
+        global janela_logs_aberta
+        # 1. Cria a parte visual
+        visual = JanelaLogs(self.view.controles['janela_principal'])
+
+        # 2. Cria a lógica e passa a visão para ela controlar
+        logica = Funcoes(visual)
+
+        janela_logs_aberta = True
+        logica.view.controles['janela_logs'].wait_window()
+        janela_logs_aberta = False
 
     ### Configuração da janela
     def esconder_janela(self):

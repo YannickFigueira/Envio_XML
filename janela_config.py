@@ -109,6 +109,11 @@ class JanelaPrincipal:
         self.barra_menu = tk.Menu(self.janela_principal)
         self.janela_principal.config(menu=self.barra_menu)
 
+        # Menu Arquivo
+        self.menu_arquivo = tk.Menu(self.barra_menu, tearoff=0)
+        self.barra_menu.add_cascade(label="Arquivo", menu=self.menu_arquivo)
+        self.controles['menu_arquivo'] = self.menu_arquivo
+
         # Menu Config
         self.menu_config = tk.Menu(self.barra_menu, tearoff=0)
         self.barra_menu.add_cascade(label="Configuração", menu=self.menu_config)

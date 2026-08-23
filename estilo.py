@@ -21,12 +21,21 @@ if not os.path.exists(log_files):
     os.mkdir(log_files)
 
 # Margens padrão para janelas e frames
+# Medidas
+ESPACO = 5
+LINHA_PAINEL_ESQUERDO = 0
+
+# Margens padrão para janelas e frames
 PADX_JANELA = 20
 PADY_JANELA = 20
 
 # Margens padrão para componentes menores (botões, inputs, labels)
 PADX_COMPONENTE = 10
 PADY_COMPONENTE = 5
+
+# Estilo
+FONTE_VAZIA=("", 11, "normal")
+FONTE_ARIAL=("Arial", 11, "normal")
 
 # Arquivo de log
 ARQUIVO_ERRO = "envio_xml.log"
