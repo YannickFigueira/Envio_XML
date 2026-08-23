@@ -52,3 +52,7 @@
 - Otimizado cópia dos arquivos
 - Adicionado módulo arquivo_log.py
 - Adicionado janela de logs
+- Posicionado janela próximo ao centro da tela
+
+### Fixes
+- Adicionado verificação da pasta do segundo programa, caso já esteja configurado
