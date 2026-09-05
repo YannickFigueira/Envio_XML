@@ -18,7 +18,7 @@ from screeninfo import get_monitors
 # Módulos próprios
 import dados_tinydb, estilo, separar_notas, telegrambot, verificarversao, xmlreadnota, transferarea
 from arquivo_log import ler_pasta_log, abrir_logs, gerar_arquivo_log, registrar_log
-from janela_alterar_dados import JanelaAlterarDados
+from janela_reenviar import JanelaReenviar
 from janela_logs import JanelaLogs
 
 # Aumenta o buffer interno do Windows no shutil para 16MB (o padrão é 64KB)
@@ -27,6 +27,7 @@ shutil._WINDOWS_INTERNAL_BUFFER_SIZE = 16 * 1024 * 1024
 
 # Variáveis globais
 janela_logs_aberta = False
+system = system()
 
 # --- Variáveis globais ---
 agora = datetime.now()
@@ -36,9 +37,6 @@ ano = agora.strftime("%Y")
 config_dados = dados_tinydb.carregar_dados()
 
 # --- Comandos dos Menus da janela principal ---
-def abrir_janela_alterar_dados(janela_principal):
-    visual = JanelaAlterarDados(janela_principal)
-    logica = Funcoes(visual)
 
 def reset_telegram():
     resposta = messagebox.askyesno("Verificar", "Deseja mesmo deletar os dados")
@@ -227,8 +225,8 @@ def copiar_xmls(origem, cliente, mes_desejado, ano_desejado):
         dir_nfce = ""
 
     if system == "Windows":
-        destino_compactar = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{cliente}"
-        destino_dir_copia = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{cliente}\\notas{dir_nfce}"
+        destino_compactar = f"{estilo.destino_dir}\\{ano_desejado}_{mes_desejado}_{cliente}"
+        destino_dir_copia = f"{estilo.destino_dir}\\{ano_desejado}_{mes_desejado}_{cliente}\\notas{dir_nfce}"
 
         if isinstance(destino_dir_copia, bytes):
             destino_dir_copia = destino_dir_copia.decode('utf-8')
@@ -237,8 +235,8 @@ def copiar_xmls(origem, cliente, mes_desejado, ano_desejado):
             os.makedirs(destino_dir_copia)
             if not os.path.exists(f"{destino_compactar}\\relatorio"): os.makedirs(f"{destino_compactar}\\relatorio")
     elif system == "Linux":
-        destino_compactar = f"{destino_dir}/{ano_desejado}_{mes_desejado}_{cliente}"
-        destino_dir_copia = f"{destino_dir}/{ano_desejado}_{mes_desejado}_{cliente}/notas"
+        destino_compactar = f"{estilo.destino_dir}/{ano_desejado}_{mes_desejado}_{cliente}"
+        destino_dir_copia = f"{estilo.destino_dir}/{ano_desejado}_{mes_desejado}_{cliente}/notas"
 
         if isinstance(destino_dir_copia, bytes):
             destino_dir_copia = destino_dir_copia.decode('utf-8')
@@ -273,7 +271,6 @@ def copiar_xmls(origem, cliente, mes_desejado, ano_desejado):
         shutil.rmtree(destino_compactar)
         return False
 
-
 class Funcoes:
     def __init__(self, view):
         self.view = view
@@ -281,8 +278,8 @@ class Funcoes:
         if hasattr(view, 'nome_janela'):
             if view.nome_janela == "janela-principal":
                 self._vincular_janela_principal()
-            elif view.nome_janela == "janela-alterar-dados":
-                self._vincular_janela_alterar_dados()
+            elif view.nome_janela == "janela-reenviar":
+                self._vincular_janela_reenviar()
             elif view.nome_janela == "logs":
                 self._vincular_janela_logs()
 
@@ -317,12 +314,13 @@ class Funcoes:
         else:
             self.view.controles['janela_principal'].deiconify()
 
+        sistemas = self.view.controles['sistema_cb'].cget("values")
         if Path(estilo.SMALL_COMMERCE).exists():
-            self.view.controles['sistema_cb'].current(0)
+            self.view.controles['sistema_cb'].set(sistemas[0])
         elif Path(estilo.COMERCIAL).exists():
-            self.view.controles['sistema_cb'].current(1)
+            self.view.controles['sistema_cb'].set(sistemas[1])
         else:
-            self.view.controles['sistema_cb'].current(0)
+            self.view.controles['sistema_cb'].set(sistemas[0])
 
         # Carregar ícone (use um PNG)
         image = Image.open("imagens/xml.png")
@@ -360,9 +358,9 @@ class Funcoes:
         carregar_dados()
 
         ### Desenvolvimento
-        self.view.controles['entrada_email'].config(state="disabled")
-        self.view.controles['entrada_senha'].config(state="disabled")
-        self.view.controles['text_area'].config(state="disabled")
+        self.view.controles['entrada_email'].configure(state="disabled")
+        self.view.controles['entrada_senha'].configure(state="disabled")
+        self.view.controles['text_area'].configure(state="disabled")
 
         transferarea.ClipboardMenu(self.view.controles['janela_principal'], self.view.controles['entrada_caminho'])
         transferarea.ClipboardMenu(self.view.controles['janela_principal'], self.view.controles['entrada_cliente'])
@@ -374,7 +372,7 @@ class Funcoes:
         self.view.controles['menu_arquivo'].add_command(label='Abrir logs', command=lambda: self.abrir_janela_logs())
         # Menu config
         self.view.controles['menu_config'].add_command(label="Reenviar notas",
-                                                       command=lambda: abrir_janela_alterar_dados(self.view.controles['janela_principal']))
+                                                       command=lambda: self.abrir_janela_reenviar())
         self.view.controles['menu_config'].add_command(label="Resetar dados Telegram", command=lambda: reset_telegram())
         # Menu ajuda
         self.view.controles['menu_ajuda'].add_command(label="Verificar atualização",
@@ -385,11 +383,11 @@ class Funcoes:
 
         # --- Controles da janela principal ---
         self.view.controles['janela_principal'].protocol("WM_DELETE_WINDOW", self.esconder_janela)
-        self.view.controles['button_selecionar_origem'].config(command=lambda: self.verificar_sistema())
-        self.view.controles['button_gravar'].config(command=lambda: self.gravar_config())
+        self.view.controles['button_selecionar_origem'].configure(command=lambda: self.verificar_sistema())
+        self.view.controles['button_gravar'].configure(command=lambda: self.gravar_config())
 
-    def _vincular_janela_alterar_dados(self):
-        self.view.controles['btn_executar'].config(command=lambda: self.reenviar_xmls())
+    def _vincular_janela_reenviar(self):
+        self.view.controles['btn_executar'].configure(command=lambda: self.reenviar_xmls())
 
     def _vincular_janela_logs(self):
         # --- Inicialização da janela logs ---
@@ -404,9 +402,14 @@ class Funcoes:
             self.view.controles['lbl_logs'].config(text=texto_log)
             self.view.controles['cmb_selecao'].config(values=arquivos_log)
             self.view.controles['cmb_selecao'].current(0)
-        self.view.controles['btn_abrir_logs'].config(command=lambda: abrir_logs(self.view))
+        self.view.controles['btn_abrir_logs'].configure(command=lambda: abrir_logs(self.view))
 
     # --- Inicialização das Janelas ---
+
+    def abrir_janela_reenviar(self):
+        visual = JanelaReenviar(self.view.controles['janela_principal'])
+        logica = Funcoes(visual)
+        logica.centralizar_janela("janela_reenviar", self.view.controles['janela_principal'])
 
     def abrir_janela_logs(self):
         global janela_logs_aberta
@@ -417,6 +420,7 @@ class Funcoes:
         logica = Funcoes(visual)
 
         janela_logs_aberta = True
+        logica.centralizar_janela("janela_logs", self.view.controles['janela_principal'])
         logica.view.controles['janela_logs'].wait_window()
         janela_logs_aberta = False
 
@@ -431,6 +435,28 @@ class Funcoes:
         self.view.controles['janela_principal'].destroy()
         icon.stop()
         sys.exit()
+
+    def centralizar_janela(self, janela, parent):
+        """Centraliza a janela 'child' no centro da janela 'parent'."""
+        parent.update_idletasks()
+        self.view.controles[janela].update_idletasks()
+
+        # Dimensões e posição da janela principal
+        p_width = parent.winfo_width()
+        p_height = parent.winfo_height()
+        p_x = parent.winfo_rootx()
+        p_y = parent.winfo_rooty()
+
+        # Dimensões da janela filha
+        c_width = self.view.controles[janela].winfo_reqwidth()
+        c_height = self.view.controles[janela].winfo_reqheight()
+
+        # Cálculo das coordenadas X e Y
+        x = p_x + (p_width // 2) - (c_width // 2)
+        y = p_y + (p_height // 2) - (c_height // 2)
+
+        # Aplica a geometria (Largura x Altura + X + Y)
+        self.view.controles[janela].geometry(f"{c_width}x{c_height}+{x}+{y}")
 
     # --- Manipulação dos dados
     def verificar_sistema(self):
@@ -598,11 +624,11 @@ class Funcoes:
 
         dados_tinydb.atualizar_dados('executado', True)
     # Fim das configurações da janela principal
-    # Configurações da janela alterar dados
+    # Configurações da janela reenviar
     def reenviar_xmls(self):
         self.preparar_xmls(int(self.view.controles['ent_mes'].current()) + 2, int(self.view.controles['ent_ano'].get()))
         messagebox.showinfo("Concluído", "XML preparado e enviado com sucesso!")
-        self.view.controles['janela_alterar'].destroy()
+        self.view.controles['janela_reenviar'].destroy()
 
     def fechar_janelas(self, janela):
         global janela_logs_aberta
