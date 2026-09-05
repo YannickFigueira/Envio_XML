@@ -10,15 +10,17 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import Path
 from platform import system
-from tkinter import messagebox, filedialog
+from tkinter import filedialog
+
 from PIL import Image
 from pystray import Icon, Menu, MenuItem
 from screeninfo import get_monitors
 
+import caixa_mensagem
 # Módulos próprios
 import dados_tinydb, estilo, separar_notas, telegrambot, verificarversao, xmlreadnota, transferarea
 from arquivo_log import ler_pasta_log, abrir_logs, gerar_arquivo_log, registrar_log
-from janela_alterar_dados import JanelaAlterarDados
+from janela_reenviar import JanelaReenviar
 from janela_logs import JanelaLogs
 
 # Aumenta o buffer interno do Windows no shutil para 16MB (o padrão é 64KB)
@@ -27,6 +29,7 @@ shutil._WINDOWS_INTERNAL_BUFFER_SIZE = 16 * 1024 * 1024
 
 # Variáveis globais
 janela_logs_aberta = False
+system = system()
 
 # --- Variáveis globais ---
 agora = datetime.now()
@@ -36,17 +39,16 @@ ano = agora.strftime("%Y")
 config_dados = dados_tinydb.carregar_dados()
 
 # --- Comandos dos Menus da janela principal ---
-def abrir_janela_alterar_dados(janela_principal):
-    visual = JanelaAlterarDados(janela_principal)
-    logica = Funcoes(visual)
-
 def reset_telegram():
-    resposta = messagebox.askyesno("Verificar", "Deseja mesmo deletar os dados")
+    #resposta = messagebox.askyesno("Verificar", "Deseja mesmo deletar os dados")
 
-    if resposta:
+    # Captura a opção escolhida
+    resposta = caixa_mensagem.sim_nao("Verificar", "Deseja mesmo deletar os dados?")
+
+    if resposta == "Sim":
         dados_tinydb.atualizar_dados('telegrambot', '')
         dados_tinydb.atualizar_dados('chat_id', '')
-        messagebox.showinfo("Completo", "Dados apagados com sucesso!")
+        caixa_mensagem.info("Completo", "Dados apagados com sucesso!")
 
 def abrir_notas(): # Padronizar logs
     if system == "Windows":
@@ -60,11 +62,11 @@ def abrir_notas(): # Padronizar logs
 
 def visitar_site():
     pagina = f"https://github.com/YannickFigueira"
-    resposta = messagebox.askyesno("Sobre", f"{estilo.NOME_PROGRAMA} {estilo.VERSION}\n"
+    resposta =  caixa_mensagem.sim_nao("Sobre", f"{estilo.NOME_PROGRAMA} {estilo.VERSION}\n"
                                             f"Deseja visitar a página\n"
                                             f"Desenvolvedor: YannickFigueira\n"
                                             f"chronostimeinchain@gmail.com")
-    if resposta:
+    if resposta == "Sim":
         verificarversao.webbrowser.open(pagina)
 
 # --- Comandos gerais ---
@@ -157,7 +159,7 @@ def carregar_texto(arquivo):
             dados_tinydb.atualizar_dados('telegrambot', telegram_token[1])
             dados_tinydb.atualizar_dados('chat_id', telegram_chat_id[1])
     else:
-        messagebox.showerror("Erro", f"Arquivo não encontrado: {arquivo}")
+        caixa_mensagem.erro("Erro", f"Arquivo não encontrado: {arquivo}")
 
     return telegram_token[1], telegram_chat_id[1]
 
@@ -227,8 +229,8 @@ def copiar_xmls(origem, cliente, mes_desejado, ano_desejado):
         dir_nfce = ""
 
     if system == "Windows":
-        destino_compactar = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{cliente}"
-        destino_dir_copia = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{cliente}\\notas{dir_nfce}"
+        destino_compactar = f"{estilo.destino_dir}\\{ano_desejado}_{mes_desejado}_{cliente}"
+        destino_dir_copia = f"{estilo.destino_dir}\\{ano_desejado}_{mes_desejado}_{cliente}\\notas{dir_nfce}"
 
         if isinstance(destino_dir_copia, bytes):
             destino_dir_copia = destino_dir_copia.decode('utf-8')
@@ -237,8 +239,8 @@ def copiar_xmls(origem, cliente, mes_desejado, ano_desejado):
             os.makedirs(destino_dir_copia)
             if not os.path.exists(f"{destino_compactar}\\relatorio"): os.makedirs(f"{destino_compactar}\\relatorio")
     elif system == "Linux":
-        destino_compactar = f"{destino_dir}/{ano_desejado}_{mes_desejado}_{cliente}"
-        destino_dir_copia = f"{destino_dir}/{ano_desejado}_{mes_desejado}_{cliente}/notas"
+        destino_compactar = f"{estilo.destino_dir}/{ano_desejado}_{mes_desejado}_{cliente}"
+        destino_dir_copia = f"{estilo.destino_dir}/{ano_desejado}_{mes_desejado}_{cliente}/notas"
 
         if isinstance(destino_dir_copia, bytes):
             destino_dir_copia = destino_dir_copia.decode('utf-8')
@@ -273,7 +275,6 @@ def copiar_xmls(origem, cliente, mes_desejado, ano_desejado):
         shutil.rmtree(destino_compactar)
         return False
 
-
 class Funcoes:
     def __init__(self, view):
         self.view = view
@@ -281,8 +282,8 @@ class Funcoes:
         if hasattr(view, 'nome_janela'):
             if view.nome_janela == "janela-principal":
                 self._vincular_janela_principal()
-            elif view.nome_janela == "janela-alterar-dados":
-                self._vincular_janela_alterar_dados()
+            elif view.nome_janela == "janela-reenviar":
+                self._vincular_janela_reenviar()
             elif view.nome_janela == "logs":
                 self._vincular_janela_logs()
 
@@ -317,12 +318,13 @@ class Funcoes:
         else:
             self.view.controles['janela_principal'].deiconify()
 
+        sistemas = self.view.controles['sistema_cb'].cget("values")
         if Path(estilo.SMALL_COMMERCE).exists():
-            self.view.controles['sistema_cb'].current(0)
+            self.view.controles['sistema_cb'].set(sistemas[0])
         elif Path(estilo.COMERCIAL).exists():
-            self.view.controles['sistema_cb'].current(1)
+            self.view.controles['sistema_cb'].set(sistemas[1])
         else:
-            self.view.controles['sistema_cb'].current(0)
+            self.view.controles['sistema_cb'].set(sistemas[0])
 
         # Carregar ícone (use um PNG)
         image = Image.open("imagens/xml.png")
@@ -360,9 +362,9 @@ class Funcoes:
         carregar_dados()
 
         ### Desenvolvimento
-        self.view.controles['entrada_email'].config(state="disabled")
-        self.view.controles['entrada_senha'].config(state="disabled")
-        self.view.controles['text_area'].config(state="disabled")
+        self.view.controles['entrada_email'].configure(state="disabled")
+        self.view.controles['entrada_senha'].configure(state="disabled")
+        self.view.controles['text_area'].configure(state="disabled")
 
         transferarea.ClipboardMenu(self.view.controles['janela_principal'], self.view.controles['entrada_caminho'])
         transferarea.ClipboardMenu(self.view.controles['janela_principal'], self.view.controles['entrada_cliente'])
@@ -374,7 +376,7 @@ class Funcoes:
         self.view.controles['menu_arquivo'].add_command(label='Abrir logs', command=lambda: self.abrir_janela_logs())
         # Menu config
         self.view.controles['menu_config'].add_command(label="Reenviar notas",
-                                                       command=lambda: abrir_janela_alterar_dados(self.view.controles['janela_principal']))
+                                                       command=lambda: self.abrir_janela_reenviar())
         self.view.controles['menu_config'].add_command(label="Resetar dados Telegram", command=lambda: reset_telegram())
         # Menu ajuda
         self.view.controles['menu_ajuda'].add_command(label="Verificar atualização",
@@ -385,11 +387,11 @@ class Funcoes:
 
         # --- Controles da janela principal ---
         self.view.controles['janela_principal'].protocol("WM_DELETE_WINDOW", self.esconder_janela)
-        self.view.controles['button_selecionar_origem'].config(command=lambda: self.verificar_sistema())
-        self.view.controles['button_gravar'].config(command=lambda: self.gravar_config())
+        self.view.controles['button_selecionar_origem'].configure(command=lambda: self.verificar_sistema())
+        self.view.controles['button_gravar'].configure(command=lambda: self.gravar_config())
 
-    def _vincular_janela_alterar_dados(self):
-        self.view.controles['btn_executar'].config(command=lambda: self.reenviar_xmls())
+    def _vincular_janela_reenviar(self):
+        self.view.controles['btn_executar'].configure(command=lambda: self.reenviar_xmls())
 
     def _vincular_janela_logs(self):
         # --- Inicialização da janela logs ---
@@ -404,9 +406,14 @@ class Funcoes:
             self.view.controles['lbl_logs'].config(text=texto_log)
             self.view.controles['cmb_selecao'].config(values=arquivos_log)
             self.view.controles['cmb_selecao'].current(0)
-        self.view.controles['btn_abrir_logs'].config(command=lambda: abrir_logs(self.view))
+        self.view.controles['btn_abrir_logs'].configure(command=lambda: abrir_logs(self.view))
 
     # --- Inicialização das Janelas ---
+
+    def abrir_janela_reenviar(self):
+        visual = JanelaReenviar(self.view.controles['janela_principal'])
+        logica = Funcoes(visual)
+        logica.centralizar_janela("janela_reenviar", self.view.controles['janela_principal'])
 
     def abrir_janela_logs(self):
         global janela_logs_aberta
@@ -417,6 +424,7 @@ class Funcoes:
         logica = Funcoes(visual)
 
         janela_logs_aberta = True
+        logica.centralizar_janela("janela_logs", self.view.controles['janela_principal'])
         logica.view.controles['janela_logs'].wait_window()
         janela_logs_aberta = False
 
@@ -432,22 +440,44 @@ class Funcoes:
         icon.stop()
         sys.exit()
 
+    def centralizar_janela(self, janela, parent):
+        """Centraliza a janela 'child' no centro da janela 'parent'."""
+        parent.update_idletasks()
+        self.view.controles[janela].update_idletasks()
+
+        # Dimensões e posição da janela principal
+        p_width = parent.winfo_width()
+        p_height = parent.winfo_height()
+        p_x = parent.winfo_rootx()
+        p_y = parent.winfo_rooty()
+
+        # Dimensões da janela filha
+        c_width = self.view.controles[janela].winfo_reqwidth()
+        c_height = self.view.controles[janela].winfo_reqheight()
+
+        # Cálculo das coordenadas X e Y
+        x = p_x + (p_width // 2) - (c_width // 2)
+        y = p_y + (p_height // 2) - (c_height // 2)
+
+        # Aplica a geometria (Largura x Altura + X + Y)
+        self.view.controles[janela].geometry(f"{c_width}x{c_height}+{x}+{y}")
+
     # --- Manipulação dos dados
     def verificar_sistema(self):
         sistema_emissor = self.view.controles['sistema_cb'].get()
-        resposta = False
+        resposta = "Não"
         caminho = ""
         if sistema_emissor == "SmallSoft":
-            resposta = messagebox.askyesno("Escolha",
+            resposta = caixa_mensagem.sim_nao("Escolha",
                                            f"Sistema selecionado {sistema_emissor}\nQuer usar a pasta padrão")
             caminho = "C:\\Program Files (x86)\\SmallSoft\\Small Commerce"
         elif sistema_emissor == "Comercial":
-            resposta = messagebox.askyesno("Escolha",
+            resposta = caixa_mensagem.sim_nao("Escolha",
                                            f"Sistema selecionado {sistema_emissor}\nQuer usar a pasta padrão")
             caminho = "C:\\Program Files (x86)\\Comercial"
 
         self.view.controles['entrada_caminho'].delete(0, "end")
-        if resposta:
+        if resposta == "Sim":
             self.view.controles['entrada_caminho'].insert(0, caminho)
         else:
             self.view.controles['entrada_caminho'].insert(0, selecionar_pasta())
@@ -459,8 +489,8 @@ class Funcoes:
         segundo_sistema = ""
         if self.view.controles['checkbox_sistema'].get():
             verificar_segundo = config_dados['database']['segundo_sis_pasta']
-            resposta = messagebox.askyesno("Verificar", f"Este caminho está correto \n{verificar_segundo}")
-            if resposta:
+            resposta = caixa_mensagem.sim_nao("Verificar", f"Este caminho está correto \n{verificar_segundo}")
+            if resposta == "Sim":
                 segundo_sistema = verificar_segundo
             else:
                 segundo_sistema = selecionar_pasta()
@@ -490,18 +520,18 @@ class Funcoes:
             dados_tinydb.atualizar_dados('segundo_sis_pasta', segundo_sistema)
             if config_dados['database']['telegrambot'] == "":
                 # token, chat_id = telegrambot.janela_telegram()
-                messagebox.showinfo("Telegram", "Selecione o arquivo de configuração do Telegram")
+                caixa_mensagem.info("Telegram", "Selecione o arquivo de configuração do Telegram")
                 token, chat_id = selecionar_arquivo_telegram()
                 dados_tinydb.atualizar_dados('telegrambot', dados_tinydb.crypto.cripto_dados(dados_tinydb.open_key(config_dados), token))
                 dados_tinydb.atualizar_dados('chat_id', dados_tinydb.crypto.cripto_dados(dados_tinydb.open_key(config_dados), chat_id))
             config_dados = dados_tinydb.carregar_dados()
-            resposta = messagebox.askyesno("Completo", "Dados gravados com sucesso!\nDeseja fazer a primeira execução?")
+            resposta = caixa_mensagem.sim_nao("Completo", "Dados gravados com sucesso!\nDeseja fazer a primeira execução?")
 
-            if resposta:
+            if resposta == "Sim":
                 self.preparar_xmls(int(mes), int(ano))
-                messagebox.showinfo("Concluído", "XML preparado e enviado com sucesso!")
+                caixa_mensagem.info("Concluído", "XML preparado e enviado com sucesso!")
         else:
-            messagebox.showwarning("ERRO", "Pasta não existe!")
+            caixa_mensagem.cuidado("ERRO", "Pasta não existe!")
 
     def preparar_xmls(self, mes_desejado, ano_desejado):
         if mes_desejado == 1:
@@ -598,11 +628,11 @@ class Funcoes:
 
         dados_tinydb.atualizar_dados('executado', True)
     # Fim das configurações da janela principal
-    # Configurações da janela alterar dados
+    # Configurações da janela reenviar
     def reenviar_xmls(self):
         self.preparar_xmls(int(self.view.controles['ent_mes'].current()) + 2, int(self.view.controles['ent_ano'].get()))
-        messagebox.showinfo("Concluído", "XML preparado e enviado com sucesso!")
-        self.view.controles['janela_alterar'].destroy()
+        caixa_mensagem.info("Concluído", "XML preparado e enviado com sucesso!")
+        self.view.controles['janela_reenviar'].destroy()
 
     def fechar_janelas(self, janela):
         global janela_logs_aberta
