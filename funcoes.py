@@ -10,11 +10,13 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import Path
 from platform import system
-from tkinter import messagebox, filedialog
+from tkinter import filedialog
+
 from PIL import Image
 from pystray import Icon, Menu, MenuItem
 from screeninfo import get_monitors
 
+import caixa_mensagem
 # Módulos próprios
 import dados_tinydb, estilo, separar_notas, telegrambot, verificarversao, xmlreadnota, transferarea
 from arquivo_log import ler_pasta_log, abrir_logs, gerar_arquivo_log, registrar_log
@@ -37,14 +39,16 @@ ano = agora.strftime("%Y")
 config_dados = dados_tinydb.carregar_dados()
 
 # --- Comandos dos Menus da janela principal ---
-
 def reset_telegram():
-    resposta = messagebox.askyesno("Verificar", "Deseja mesmo deletar os dados")
+    #resposta = messagebox.askyesno("Verificar", "Deseja mesmo deletar os dados")
 
-    if resposta:
+    # Captura a opção escolhida
+    resposta = caixa_mensagem.sim_nao("Verificar", "Deseja mesmo deletar os dados?")
+
+    if resposta == "Sim":
         dados_tinydb.atualizar_dados('telegrambot', '')
         dados_tinydb.atualizar_dados('chat_id', '')
-        messagebox.showinfo("Completo", "Dados apagados com sucesso!")
+        caixa_mensagem.info("Completo", "Dados apagados com sucesso!")
 
 def abrir_notas(): # Padronizar logs
     if system == "Windows":
@@ -58,11 +62,11 @@ def abrir_notas(): # Padronizar logs
 
 def visitar_site():
     pagina = f"https://github.com/YannickFigueira"
-    resposta = messagebox.askyesno("Sobre", f"{estilo.NOME_PROGRAMA} {estilo.VERSION}\n"
+    resposta =  caixa_mensagem.sim_nao("Sobre", f"{estilo.NOME_PROGRAMA} {estilo.VERSION}\n"
                                             f"Deseja visitar a página\n"
                                             f"Desenvolvedor: YannickFigueira\n"
                                             f"chronostimeinchain@gmail.com")
-    if resposta:
+    if resposta == "Sim":
         verificarversao.webbrowser.open(pagina)
 
 # --- Comandos gerais ---
@@ -155,7 +159,7 @@ def carregar_texto(arquivo):
             dados_tinydb.atualizar_dados('telegrambot', telegram_token[1])
             dados_tinydb.atualizar_dados('chat_id', telegram_chat_id[1])
     else:
-        messagebox.showerror("Erro", f"Arquivo não encontrado: {arquivo}")
+        caixa_mensagem.erro("Erro", f"Arquivo não encontrado: {arquivo}")
 
     return telegram_token[1], telegram_chat_id[1]
 
@@ -461,19 +465,19 @@ class Funcoes:
     # --- Manipulação dos dados
     def verificar_sistema(self):
         sistema_emissor = self.view.controles['sistema_cb'].get()
-        resposta = False
+        resposta = "Não"
         caminho = ""
         if sistema_emissor == "SmallSoft":
-            resposta = messagebox.askyesno("Escolha",
+            resposta = caixa_mensagem.sim_nao("Escolha",
                                            f"Sistema selecionado {sistema_emissor}\nQuer usar a pasta padrão")
             caminho = "C:\\Program Files (x86)\\SmallSoft\\Small Commerce"
         elif sistema_emissor == "Comercial":
-            resposta = messagebox.askyesno("Escolha",
+            resposta = caixa_mensagem.sim_nao("Escolha",
                                            f"Sistema selecionado {sistema_emissor}\nQuer usar a pasta padrão")
             caminho = "C:\\Program Files (x86)\\Comercial"
 
         self.view.controles['entrada_caminho'].delete(0, "end")
-        if resposta:
+        if resposta == "Sim":
             self.view.controles['entrada_caminho'].insert(0, caminho)
         else:
             self.view.controles['entrada_caminho'].insert(0, selecionar_pasta())
@@ -485,8 +489,8 @@ class Funcoes:
         segundo_sistema = ""
         if self.view.controles['checkbox_sistema'].get():
             verificar_segundo = config_dados['database']['segundo_sis_pasta']
-            resposta = messagebox.askyesno("Verificar", f"Este caminho está correto \n{verificar_segundo}")
-            if resposta:
+            resposta = caixa_mensagem.sim_nao("Verificar", f"Este caminho está correto \n{verificar_segundo}")
+            if resposta == "Sim":
                 segundo_sistema = verificar_segundo
             else:
                 segundo_sistema = selecionar_pasta()
@@ -516,18 +520,18 @@ class Funcoes:
             dados_tinydb.atualizar_dados('segundo_sis_pasta', segundo_sistema)
             if config_dados['database']['telegrambot'] == "":
                 # token, chat_id = telegrambot.janela_telegram()
-                messagebox.showinfo("Telegram", "Selecione o arquivo de configuração do Telegram")
+                caixa_mensagem.info("Telegram", "Selecione o arquivo de configuração do Telegram")
                 token, chat_id = selecionar_arquivo_telegram()
                 dados_tinydb.atualizar_dados('telegrambot', dados_tinydb.crypto.cripto_dados(dados_tinydb.open_key(config_dados), token))
                 dados_tinydb.atualizar_dados('chat_id', dados_tinydb.crypto.cripto_dados(dados_tinydb.open_key(config_dados), chat_id))
             config_dados = dados_tinydb.carregar_dados()
-            resposta = messagebox.askyesno("Completo", "Dados gravados com sucesso!\nDeseja fazer a primeira execução?")
+            resposta = caixa_mensagem.sim_nao("Completo", "Dados gravados com sucesso!\nDeseja fazer a primeira execução?")
 
-            if resposta:
+            if resposta == "Sim":
                 self.preparar_xmls(int(mes), int(ano))
-                messagebox.showinfo("Concluído", "XML preparado e enviado com sucesso!")
+                caixa_mensagem.info("Concluído", "XML preparado e enviado com sucesso!")
         else:
-            messagebox.showwarning("ERRO", "Pasta não existe!")
+            caixa_mensagem.cuidado("ERRO", "Pasta não existe!")
 
     def preparar_xmls(self, mes_desejado, ano_desejado):
         if mes_desejado == 1:
@@ -627,7 +631,7 @@ class Funcoes:
     # Configurações da janela reenviar
     def reenviar_xmls(self):
         self.preparar_xmls(int(self.view.controles['ent_mes'].current()) + 2, int(self.view.controles['ent_ano'].get()))
-        messagebox.showinfo("Concluído", "XML preparado e enviado com sucesso!")
+        caixa_mensagem.info("Concluído", "XML preparado e enviado com sucesso!")
         self.view.controles['janela_reenviar'].destroy()
 
     def fechar_janelas(self, janela):

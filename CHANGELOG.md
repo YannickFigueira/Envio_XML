@@ -58,5 +58,9 @@
 - Adicionado verificação da pasta do segundo programa, caso já esteja configurado
 
 ## [v4.1.5rc2] - 2026-09-05
+### Changes
+- Redesenhado a janela
+- Adicionado novas caixas de mensagem
+
 ### Fixes
 - Adicionado proteção para o envio do telegram
