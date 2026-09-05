@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 
 # Versão e repositório
-VERSION = "v4.1.4rc2"
+VERSION = "v4.1.5rc2"
 REPO= "Envio_XML"
 NOME_PROGRAMA = "Envio XML"
 
@@ -19,6 +19,11 @@ if not os.path.exists(notas):
     os.mkdir(notas)
 if not os.path.exists(log_files):
     os.mkdir(log_files)
+
+# Pasta dos XMLs
+destino_dir = "C:\\temp\\XMLs"
+if not os.path.exists(destino_dir):
+    os.makedirs(destino_dir)
 
 # Margens padrão para janelas e frames
 # Medidas

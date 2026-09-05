@@ -1,5 +1,4 @@
 import inspect
-import logging
 import os
 import shutil
 import subprocess
@@ -18,7 +17,7 @@ from screeninfo import get_monitors
 
 # Módulos próprios
 import dados_tinydb, estilo, separar_notas, telegrambot, verificarversao, xmlreadnota, transferarea
-from arquivo_log import ler_pasta_log, abrir_logs
+from arquivo_log import ler_pasta_log, abrir_logs, gerar_arquivo_log, registrar_log
 from janela_alterar_dados import JanelaAlterarDados
 from janela_logs import JanelaLogs
 
@@ -28,34 +27,6 @@ shutil._WINDOWS_INTERNAL_BUFFER_SIZE = 16 * 1024 * 1024
 
 # Variáveis globais
 janela_logs_aberta = False
-
-# --- Registro de erros ---
-home_dir = os.path.expanduser('~')
-system = system()
-if system == 'Linux':
-    if not os.path.exists(f"{home_dir}/log"):
-        os.mkdir(f"{home_dir}/log")
-
-    logging.basicConfig(
-        filename=f"{home_dir}/log/envio_xml.log",        # nome do arquivo
-        level=logging.ERROR,         # nível de log
-        format="%(asctime)s - %(levelname)s - %(message)s")
-
-    destino_dir = "/tmp/XMLs"
-    if not os.path.exists(destino_dir):
-        os.makedirs(destino_dir)
-elif system == 'Windows':
-    if not os.path.exists(f"c:/temp"):
-        os.mkdir(f"c:/temp")
-
-    logging.basicConfig(
-        filename="c:/temp/envio_xml.log",  # nome do arquivo
-        level=logging.ERROR,  # nível de log
-        format="%(asctime)s - %(levelname)s - %(message)s")
-
-    destino_dir = "C:\\temp\\XMLs"
-    if not os.path.exists(destino_dir):
-        os.makedirs(destino_dir)
 
 # --- Variáveis globais ---
 agora = datetime.now()
@@ -225,8 +196,6 @@ def compactar(origem, destino_zip, mes_desejado, ano_desejado, filial, out):
                 with zipfile.ZipFile(destino_zip, 'w', zipfile.ZIP_DEFLATED) as zipf:
                     # Percorre todos os arquivos da pasta de origem
                     contador = 0
-                    # Conta todos os arquivos dentro da pasta origem
-                    # total = sum(len(arquivos) for _, _, arquivos in os.walk(origem))
 
                     # Garante que 'origem' seja uma string se ela vier como bytes
                     if isinstance(origem, bytes):
@@ -240,23 +209,14 @@ def compactar(origem, destino_zip, mes_desejado, ano_desejado, filial, out):
                                 caminho_relativo = caminho_completo.relative_to(origem)
                                 zipf.write(caminho_completo, caminho_relativo)
 
-                                # atualizar_barra(contador, total, progress_canvas)
                                 contador += 1
                             except Exception as e:
-                                logging.error(f"Erro ao compactar {caminho_completo}: {e}")
+                                caminho_log = gerar_arquivo_log()
+                                registrar_log(caminho_log, f"[ERRo] Compactar {caminho_completo} -> {e}")
 
                 shutil.rmtree(origem)
-                # atualizar_barra(total, total, progress_canvas)
-                # messagebox.showinfo("Completo", "Finalizado com exito.")
-            # else:
-            # messagebox.showinfo("Verificar", "Digite algo ou selecione uma pasta.")
-        # else:
-        # messagebox.showinfo("Verificar", "Arquivo ou pasta inexistente")
-    # else:
-    # messagebox.showinfo("Verificar", "Digite algo ou selecione uma pasta")
 
     out["arquivo"] = destino_zip
-
 
 def copiar_xmls(origem, cliente, mes_desejado, ano_desejado):
     global destino_dir_copia
@@ -592,13 +552,13 @@ class Funcoes:
                                                     ano_desejado)
             if encontrado_notas:
                 if config_dados['database']['relatorio']:
-                    origem_separada = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{config_dados['database']['cliente']}{filial[i]}\\notas"
-                    destino_separada = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{config_dados['database']['cliente']}{filial[i]}\\canceladas"
+                    origem_separada = f"{estilo.destino_dir}\\{ano_desejado}_{mes_desejado}_{config_dados['database']['cliente']}{filial[i]}\\notas"
+                    destino_separada = f"{estilo.destino_dir}\\{ano_desejado}_{mes_desejado}_{config_dados['database']['cliente']}{filial[i]}\\canceladas"
                     separar_notas.separar_notas(origem_separada, destino_separada, "cancelada")
-                    destino_contingencia = f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{config_dados['database']['cliente']}{filial[i]}\\contingencia"
+                    destino_contingencia = f"{estilo.destino_dir}\\{ano_desejado}_{mes_desejado}_{config_dados['database']['cliente']}{filial[i]}\\contingencia"
                     separar_notas.separar_notas(origem_separada, destino_contingencia, "contingencia")
 
-                    xmlreadnota.ler_dados_notas(f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{config_dados['database']['cliente']}{filial[i]}",
+                    xmlreadnota.ler_dados_notas(f"{estilo.destino_dir}\\{ano_desejado}_{mes_desejado}_{config_dados['database']['cliente']}{filial[i]}",
                                                 "", mes_desejado, ano_desejado)
 
             # Nota NFCE
@@ -611,26 +571,30 @@ class Funcoes:
                 if encontrado_notas:
                     if self.view.controles['checkbox_relatorio'].get():
                         xmlreadnota.ler_dados_notas(
-                            f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{config_dados['database']['cliente']}{filial[i]}",
+                            f"{estilo.destino_dir}\\{ano_desejado}_{mes_desejado}_{config_dados['database']['cliente']}{filial[i]}",
                                                     "/NFCE/", mes_desejado, ano_desejado)
 
-            destino_zip_envio = iniciar_compactacao(f"{destino_dir}\\{ano_desejado}_{mes_desejado}_{config_dados['database']['cliente']}{filial[i]}",
-                                                      destino_dir,
+            destino_zip_envio = iniciar_compactacao(f"{estilo.destino_dir}\\{ano_desejado}_{mes_desejado}_{config_dados['database']['cliente']}{filial[i]}",
+                                                      estilo.destino_dir,
                                                       mes_desejado,
                                                       ano_desejado,
                                                       filial[i])
 
-            # Envio do Telegram
-            telegram, chat_id = dados_tinydb.ler_dados_telegram(config_dados)
-            if config_dados['database']['modo_envio'] == "Telegram" and encontrado_notas:
-                telegrambot.enviar_arquivo(telegram, chat_id, destino_zip_envio)
-                #metodos.enviar_email()
-            else:
-                if config_dados['database']['modo_envio'] == "Telegram":
-                    telegrambot.enviar_mensagem(telegram, chat_id,
-                                                f"{ano_desejado} -"
-                                                f" {estilo.MES_STR[mes_desejado - 1]} -"
-                                                f" {config_dados['database']['cliente']}\nNenhum XML gerado")
+            try:
+                # Envio do Telegram
+                telegram, chat_id = dados_tinydb.ler_dados_telegram(config_dados)
+                if config_dados['database']['modo_envio'] == "Telegram" and encontrado_notas:
+                    telegrambot.enviar_arquivo(telegram, chat_id, destino_zip_envio)
+                    #metodos.enviar_email()
+                else:
+                    if config_dados['database']['modo_envio'] == "Telegram":
+                        telegrambot.enviar_mensagem(telegram, chat_id,
+                                                    f"{ano_desejado} -"
+                                                    f" {estilo.MES_STR[mes_desejado - 1]} -"
+                                                    f" {config_dados['database']['cliente']}\nNenhum XML gerado")
+            except Exception as e:
+                caminho_log = gerar_arquivo_log()
+                registrar_log(caminho_log, f"[ERRO] Enviar mensagem ou arquivo -> {e}")
 
         dados_tinydb.atualizar_dados('executado', True)
     # Fim das configurações da janela principal
